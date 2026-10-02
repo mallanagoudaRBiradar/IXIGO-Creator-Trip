@@ -9,10 +9,14 @@ export const duration = (mins: number) => {
   return h ? `${h}h ${String(m).padStart(2, '0')}m` : `${m}m`
 }
 
+// yyyy-mm-dd in local time (toISOString is UTC and shifts the day back in IST)
+export const toISODate = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+
 export const addDays = (iso: string, n: number) => {
   const d = new Date(iso + 'T00:00:00')
   d.setDate(d.getDate() + n)
-  return d.toISOString().slice(0, 10)
+  return toISODate(d)
 }
 
 export const fmtDate = (iso: string, opts: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' }) =>

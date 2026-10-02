@@ -86,7 +86,7 @@ export default function PhoneShell({ children }: { children: ReactNode }) {
   return (
     <div className="stage flex h-[100dvh] w-full items-center justify-center gap-20 overflow-hidden">
       <DesktopPitch />
-      <div className="relative">
+      <div className="relative h-full w-full sm:h-auto sm:w-auto">
       <div
         id="phone"
         className="relative isolate h-[100dvh] w-full overflow-hidden bg-ixi-night sm:h-[min(880px,calc(100dvh-40px))] sm:w-[408px] sm:rounded-[54px] sm:shadow-[0_0_0_11px_#14182b,0_0_0_12px_#2a2f48,0_40px_120px_-20px_rgba(0,0,0,.8)]"

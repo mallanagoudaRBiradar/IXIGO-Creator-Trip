@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { getCity, getReel, REELS } from './mockData'
 import { defaultConfig, priceTrip, type TripConfig } from './pricing'
-import { addDays, uid } from './utils'
+import { addDays, toISODate, uid } from './utils'
 
 export interface Dream {
   id: string
@@ -49,7 +49,7 @@ interface AppState {
 
 // A pre-booked trip so the Trips tab is never empty during a demo
 const seedReel = REELS[0]
-const seedCfg: TripConfig = { ...defaultConfig(seedReel, 'hyd'), startDate: addDays(new Date().toISOString().slice(0, 10), 9) }
+const seedCfg: TripConfig = { ...defaultConfig(seedReel, 'hyd'), startDate: addDays(toISODate(new Date()), 9) }
 const seedPrice = priceTrip(seedCfg, seedReel, getCity('hyd'))
 const seedTrip: Trip = {
   id: 'seed-goa',

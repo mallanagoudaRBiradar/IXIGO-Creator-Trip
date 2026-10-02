@@ -1,13 +1,13 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { BadgeCheck, Check, ChevronDown, Gem, Minus, Plus, Sparkles, Star, Users } from 'lucide-react'
+import { BadgeCheck, CalendarDays, Check, ChevronDown, Gem, Minus, Plus, Sparkles, Star, Users } from 'lucide-react'
 import Ticket from '../Ticket'
 import { AnimatedNumber, ModeIcon, SmartImage } from '../ui'
 import { getCity, PARTNER, type Mode, type Reel, type Tier } from '../../lib/mockData'
 import { nextFriday, quoteTransport, type PriceBreakdown, type TripConfig } from '../../lib/pricing'
 import { useApp, useUI } from '../../lib/store'
-import { addDays, cx, fmtDate, inr, weekday } from '../../lib/utils'
+import { addDays, cx, fmtDate, inr, toISODate, weekday } from '../../lib/utils'
 
 interface Props {
   reel: Reel
@@ -37,6 +37,8 @@ export default function BuildView({ reel, cfg, setCfg, price, onBook, onCrew }: 
     const f = nextFriday()
     return [0, 7, 14, 21].map((n) => addDays(f, n))
   }, [])
+  const minDate = useMemo(() => addDays(toISODate(new Date()), 1), [])
+  const customDate = !dates.includes(cfg.startDate)
 
   // a locked Dream Board fare only holds for the same route and mode
   const set = (patch: Partial<TripConfig>) =>
@@ -101,6 +103,23 @@ export default function BuildView({ reel, cfg, setCfg, price, onBook, onCrew }: 
                 <div className="text-[14px] font-bold">{fmtDate(d)}</div>
               </button>
             ))}
+            {/* the input covers the chip so a tap opens the native picker on iOS and Android */}
+            <label
+              className={cx('relative shrink-0 rounded-2xl border px-3.5 py-2 text-left', customDate ? 'border-ixi-orange bg-ixi-orange/15' : 'border-white/10 bg-white/[.03]')}
+            >
+              <div className="flex items-center gap-1 text-[11px] text-white/55">
+                <CalendarDays size={12} /> {customDate ? weekday(cfg.startDate) : 'Any date'}
+              </div>
+              <div className="text-[14px] font-bold">{customDate ? fmtDate(cfg.startDate) : 'Pick date'}</div>
+              <input
+                type="date"
+                aria-label="Pick a start date"
+                min={minDate}
+                value={cfg.startDate}
+                onChange={(e) => e.target.value && set({ startDate: e.target.value })}
+                className="absolute inset-0 h-full w-full cursor-pointer text-[16px] opacity-0"
+              />
+            </label>
           </div>
           <div className="mt-2.5 flex items-center justify-between rounded-2xl border border-white/10 bg-white/[.03] py-1.5 pl-4 pr-1.5">
             <div>

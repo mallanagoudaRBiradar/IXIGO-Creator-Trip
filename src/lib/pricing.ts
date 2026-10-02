@@ -1,4 +1,5 @@
 import { CITIES, type City, type Mode, type Reel, type Tier } from './mockData'
+import { toISODate } from './utils'
 
 export interface TripConfig {
   reelId: string
@@ -148,7 +149,7 @@ export function fromPrice(reel: Reel, origin: City) {
 export function nextFriday(from = new Date()) {
   const d = new Date(from)
   d.setDate(d.getDate() + ((5 - d.getDay() + 7) % 7 || 7))
-  return d.toISOString().slice(0, 10)
+  return toISODate(d)
 }
 
 export function defaultConfig(reel: Reel, origin: string, travelers = 2): TripConfig {
