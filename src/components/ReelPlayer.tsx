@@ -1,11 +1,15 @@
 import { AnimatePresence, motion, useMotionValue, useTransform, type MotionValue } from 'framer-motion'
 import { useEffect, useRef, useState } from 'react'
-import { BadgeCheck, Bookmark, Heart, MessageCircle, Music2, Pause, Plus, Send, Volume2, VolumeX } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { BadgeCheck, Bookmark, Heart, MapPin, MessageCircle, Music2, Pause, Plane, Plus, Send, Share2, Sparkles, Volume2, VolumeX } from 'lucide-react'
 import { getCity, type Reel } from '../lib/mockData'
 import { defaultConfig, fromPrice } from '../lib/pricing'
-import { useApp, useUI } from '../lib/store'
+import { useApp, useUI, withPrefs } from '../lib/store'
+import { useCommentCount, useLiveStream, useLiveTicker } from '../lib/live'
+import { useIsNew } from '../lib/reels'
 import { compact, cx, inr } from '../lib/utils'
 import { Avatar, ModeIcon, SmartImage } from './ui'
+import { SubscribeButton, UserAvatar } from './social'
 
 const SCENE_MS = 3800
 
@@ -42,8 +46,23 @@ export default function ReelPlayer({ reel, active, onComments }: Props) {
   const verified = useApp((s) => s.verifiedReels.includes(reel.id))
   const saved = useApp((s) => s.dreams.some((d) => d.config.reelId === reel.id))
   const { toggleLike, toggleFollow, saveDream } = useApp()
-  const { openSheet, notify } = useUI()
+  const { openSheet, notify, openShare, openMap } = useUI()
+  const shareCount = Math.round(reel.likes * 0.07) + useApp((s) => s.shares[reel.id] ?? 0)
+  const isNew = useIsNew(reel.id)
+  const navigate = useNavigate()
   const price = fromPrice(reel, getCity(origin))
+  const commentCount = useCommentCount(reel)
+  const openChannel = () => navigate(`/c/${reel.creator.handle}`)
+
+  const autoplay = useApp((s) => s.prefs.autoplay)
+  const liveTicker = useApp((s) => s.prefs.liveTicker)
+  useLiveStream(reel, active)
+
+  // with autoplay off, a reel waits on its first frame until tapped
+  useEffect(() => {
+    if (active) setPaused(!autoplay)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active])
 
   // playback clock
   useEffect(() => {
@@ -110,7 +129,7 @@ export default function ReelPlayer({ reel, active, onComments }: Props) {
 
   const save = () => {
     if (saved) return notify({ title: 'Already on your Dream Board', body: 'We are watching fares for this trip.', icon: '✨' })
-    saveDream(defaultConfig(reel, origin))
+    saveDream(withPrefs(defaultConfig(reel, origin)))
     notify({ title: 'Saved to Dream Board', body: `We'll ping you the moment ${reel.destination.name} fares drop.`, icon: '✨' })
   }
 
@@ -185,12 +204,17 @@ export default function ReelPlayer({ reel, active, onComments }: Props) {
       </div>
 
       {/* right rail */}
-      <div className="absolute bottom-[172px] right-2.5 z-10 flex flex-col items-center gap-[18px]">
+      <div className="absolute bottom-[172px] right-2.5 z-20 flex flex-col items-center gap-[14px]">
         <div className="relative mb-1">
-          <Avatar name={reel.creator.name} hue={reel.creator.hue} size={46} ring />
+          <button onClick={openChannel} aria-label={`Open @${reel.creator.handle}'s channel`} className="block rounded-full">
+            <Avatar name={reel.creator.name} hue={reel.creator.hue} size={46} ring />
+          </button>
           <button
-            aria-label={following ? `Unfollow ${reel.creator.handle}` : `Follow ${reel.creator.handle}`}
-            onClick={() => toggleFollow(reel.creator.handle)}
+            aria-label={following ? `Unsubscribe from ${reel.creator.handle}` : `Subscribe to ${reel.creator.handle}`}
+            onClick={() => {
+              toggleFollow(reel.creator.handle)
+              if (!following) notify({ title: `Subscribed to @${reel.creator.handle}`, body: 'New trips land in My Channels.', icon: '🔔', tone: 'green' })
+            }}
             className={cx('absolute -bottom-2 left-1/2 grid h-5 w-5 -translate-x-1/2 place-items-center rounded-full text-white transition-colors', following ? 'bg-ctkt' : 'bg-ixi-orange')}
           >
             {following ? <BadgeCheck size={12} /> : <Plus size={13} strokeWidth={3} />}
@@ -201,14 +225,17 @@ export default function ReelPlayer({ reel, active, onComments }: Props) {
             <Heart size={30} fill={liked ? '#FF3D57' : 'transparent'} stroke={liked ? '#FF3D57' : 'white'} />
           </motion.span>
         </RailButton>
-        <RailButton label={compact(reel.comments)} aria="Comments" onClick={onComments}>
+        <RailButton label={compact(commentCount)} aria="Comments" onClick={onComments}>
           <MessageCircle size={29} />
         </RailButton>
         <RailButton label={saved ? 'Saved' : 'Dream'} aria="Save to Dream Board" onClick={save}>
           <Bookmark size={28} fill={saved ? '#FF9A4D' : 'transparent'} stroke={saved ? '#FF9A4D' : 'white'} />
         </RailButton>
-        <RailButton label="Crew" aria="Share with your crew" onClick={() => openSheet(reel.id, 'crew')}>
+        <RailButton label="Crew" aria="Plan with your crew" onClick={() => openSheet(reel.id, 'crew')}>
           <Send size={27} />
+        </RailButton>
+        <RailButton label={compact(shareCount)} aria="Share trip" onClick={() => openShare(reel.id)}>
+          <Share2 size={27} />
         </RailButton>
         <button aria-label={muted ? 'Unmute' : 'Mute'} onClick={() => setMuted((m) => !m)} className="grid h-9 w-9 place-items-center rounded-full bg-white/10 backdrop-blur">
           {muted ? <VolumeX size={17} /> : <Volume2 size={17} />}
@@ -218,8 +245,10 @@ export default function ReelPlayer({ reel, active, onComments }: Props) {
       {/* bottom info + CTA */}
       <div className="absolute inset-x-0 bottom-0 z-10 px-3.5 pb-3">
         <div className="pr-16">
-          <div className="flex items-center gap-2">
-            <span className="text-shadow text-[15px] font-bold">@{reel.creator.handle}</span>
+          {liveTicker && <LiveTicker reel={reel} onOpen={onComments} />}
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
+            <button onClick={openChannel} className="text-shadow max-w-[60%] truncate text-[15px] font-bold hover:underline">@{reel.creator.handle}</button>
+            <SubscribeButton creator={reel.creator} size="sm" />
             {verified && (
               <button onClick={() => setShowVerify((v) => !v)} className="flex items-center gap-1 rounded-full bg-verify/20 px-2 py-0.5 text-[11px] font-bold text-verify backdrop-blur" aria-expanded={showVerify}>
                 <BadgeCheck size={13} /> Verified trip
@@ -233,8 +262,15 @@ export default function ReelPlayer({ reel, active, onComments }: Props) {
               </motion.p>
             )}
           </AnimatePresence>
-          <h2 className="text-shadow mt-1.5 font-display text-[21px] font-bold leading-tight">{reel.title}</h2>
-          <p className="text-shadow mt-1 line-clamp-2 text-[13px] leading-snug text-white/85">{reel.caption}</p>
+          <h2 className="text-shadow mt-1.5 font-display text-[21px] font-bold leading-tight">
+            {isNew && (
+              <span className="mr-1.5 inline-flex -translate-y-0.5 items-center gap-0.5 rounded-md bg-ixi-orange px-1.5 py-0.5 align-middle font-sans text-[10px] font-extrabold tracking-wide">
+                <Sparkles size={10} /> NEW
+              </span>
+            )}
+            {reel.title}
+          </h2>
+          <p className="text-shadow mt-1 line-clamp-2 text-[13px] leading-snug text-white/85 [@media(max-height:720px)]:hidden">{reel.caption}</p>
           <div className="mt-2 flex flex-wrap gap-1.5">
             {reel.vibes.map((v) => (
               <span key={v} className="rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-semibold backdrop-blur">#{v}</span>
@@ -242,6 +278,9 @@ export default function ReelPlayer({ reel, active, onComments }: Props) {
             <span className="flex items-center gap-1 rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-semibold backdrop-blur">
               <ModeIcon mode={reel.recommendedMode} size={12} /> {reel.days}D/{reel.nights}N
             </span>
+            <button onClick={() => openMap(reel.id)} className="flex items-center gap-1 rounded-full bg-ixi-orange/90 px-2.5 py-1 text-[11px] font-bold backdrop-blur" aria-label={`See ${reel.pins.length} tagged spots on a map`}>
+              <MapPin size={12} /> {reel.pins.length} spots · Map
+            </button>
           </div>
           <div className="mt-2.5 flex items-center gap-2 overflow-hidden text-[12px] text-white/75">
             <Music2 size={13} className="shrink-0" />
@@ -260,12 +299,14 @@ export default function ReelPlayer({ reel, active, onComments }: Props) {
           className="cta-sweep relative mt-3.5 flex w-full items-center justify-between overflow-hidden rounded-2xl bg-gradient-to-r from-ixi-orange to-[#FF8A3D] py-3 pl-5 pr-3 shadow-glow"
         >
           <span className="text-left">
-            <span className="block font-display text-[19px] font-extrabold leading-none">Clone this trip</span>
+            <span className="flex items-center gap-2 font-display text-[19px] font-extrabold leading-none">
+              Take me there <Plane size={18} className="-rotate-45" strokeWidth={2.6} />
+            </span>
             <span className="mt-1 block text-[12px] font-medium text-white/85">
               {inr(price)} per person from {getCity(origin).name}
             </span>
           </span>
-          <span className="whitespace-nowrap rounded-xl bg-white/20 px-3 py-2 text-[12px] font-bold">{compact(reel.clones)} cloned</span>
+          <span className="whitespace-nowrap rounded-xl bg-white/20 px-3 py-2 text-[12px] font-bold">{compact(reel.clones)} went</span>
         </motion.button>
       </div>
     </div>
@@ -278,5 +319,34 @@ function RailButton({ children, label, aria, onClick }: { children: React.ReactN
       {children}
       <span className="text-[11px] font-semibold">{label}</span>
     </motion.button>
+  )
+}
+
+/** Live comments drifting up over the reel, like a livestream chat */
+function LiveTicker({ reel, onOpen }: { reel: Reel; onOpen: () => void }) {
+  const items = useLiveTicker(reel.id, 2)
+  return (
+    <button onClick={onOpen} className="mb-2.5 block w-full text-left" aria-label="Open live comments">
+      <div className="flex h-[48px] flex-col justify-end gap-1 overflow-hidden">
+        <AnimatePresence initial={false} mode="popLayout">
+          {items.map((c, i) => (
+            <motion.div
+              key={c.id}
+              layout
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: i === items.length - 1 ? 1 : 0.7, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ type: 'spring', damping: 24, stiffness: 300 }}
+              className="flex items-center gap-1.5 text-[12.5px] leading-tight"
+            >
+              <UserAvatar handle={c.user} size={20} />
+              <span className="text-shadow truncate">
+                <b className="font-semibold text-white/70">{c.user === 'you' ? 'You' : c.user}</b> {c.text}
+              </span>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
+    </button>
   )
 }

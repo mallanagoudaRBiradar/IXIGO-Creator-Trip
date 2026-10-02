@@ -17,30 +17,30 @@ interface Props {
 }
 
 /** Boarding-pass styled transport card. Paper colour, perforated tear line. */
-export default function Ticket({ quote, from, to, footer, qr, notch = '#0D1840', className, reverse }: Props) {
+export default function Ticket({ quote, from, to, footer, qr, notch = 'rgb(var(--c-navy))', className, reverse }: Props) {
   const p = PARTNER[quote.mode as Mode]
   const a = reverse ? { code: to.code, name: to.name } : { code: from.code, name: from.name }
   const b = reverse ? { code: from.code, name: from.name } : to
   return (
-    <div className={cx('relative rounded-[20px] bg-ixi-paper text-ixi-night', className)}>
+    <div className={cx('relative rounded-[20px] bg-ixi-paper text-abyss', className)}>
       <div className="flex items-center justify-between px-4 pt-3.5">
         <span className="flex items-center gap-1.5 text-[12px] font-bold" style={{ color: p.color }}>
-          <span className="grid h-5 w-5 place-items-center rounded-md text-white" style={{ background: p.color }}>
+          <span className="grid h-5 w-5 place-items-center rounded-md text-snow" style={{ background: p.color }}>
             <ModeIcon mode={quote.mode} size={12} />
           </span>
           {p.name}
         </span>
-        <span className="text-[12px] font-semibold text-ixi-night/60">
+        <span className="text-[12px] font-semibold text-abyss/60">
           {quote.operator} {quote.number}
         </span>
       </div>
       <div className="flex items-center gap-3 px-4 pb-3 pt-2">
         <div className="min-w-0">
           <div className="font-display text-[30px] font-extrabold leading-none tracking-tight">{a.code}</div>
-          <div className="mt-1 truncate text-[11px] font-medium text-ixi-night/55">{a.name}</div>
+          <div className="mt-1 truncate text-[11px] font-medium text-abyss/55">{a.name}</div>
           <div className="text-[15px] font-bold tabular-nums">{quote.depart}</div>
         </div>
-        <div className="flex flex-1 flex-col items-center text-ixi-night/50">
+        <div className="flex flex-1 flex-col items-center text-abyss/50">
           <span className="text-[11px] font-semibold">{duration(quote.durationMins)}</span>
           <div className="relative my-1 flex w-full items-center">
             <span className="h-1.5 w-1.5 rounded-full bg-ixi-night/40" />
@@ -53,7 +53,7 @@ export default function Ticket({ quote, from, to, footer, qr, notch = '#0D1840',
         </div>
         <div className="min-w-0 text-right">
           <div className="font-display text-[30px] font-extrabold leading-none tracking-tight">{b.code}</div>
-          <div className="mt-1 truncate text-[11px] font-medium text-ixi-night/55">{b.name}</div>
+          <div className="mt-1 truncate text-[11px] font-medium text-abyss/55">{b.name}</div>
           <div className="text-[15px] font-bold tabular-nums">{quote.arrive}</div>
         </div>
       </div>

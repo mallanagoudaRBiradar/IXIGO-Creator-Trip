@@ -2,11 +2,14 @@ import { animate, useMotionValue } from 'framer-motion'
 import { useEffect, useState, type ReactNode } from 'react'
 import { Bus, Plane, TrainFront } from 'lucide-react'
 import { PARTNER, type Mode } from '../lib/mockData'
+import { useApp } from '../lib/store'
 import { cx, inr } from '../lib/utils'
 
 /** Image with a gradient fallback, so a slow or offline network never shows a broken frame */
 export function SmartImage({ src, alt, fallback, className }: { src: string; alt: string; fallback: [string, string]; className?: string }) {
   const [state, setState] = useState<'loading' | 'ok' | 'err'>('loading')
+  const dataSaver = useApp((s) => s.prefs.dataSaver)
+  if (dataSaver) src = src.replace(/([?&])w=\d+/, '$1w=420').replace(/([?&])q=\d+/, '$1q=45')
   return (
     <div className={cx('relative overflow-hidden', className)} style={{ background: `linear-gradient(135deg, ${fallback[0]}, ${fallback[1]})` }}>
       {state !== 'err' && (
@@ -28,7 +31,7 @@ export function Avatar({ name, hue, size = 40, ring = false }: { name: string; h
   const initials = name.split(' ').map((p) => p[0]).slice(0, 2).join('')
   return (
     <div
-      className={cx('grid shrink-0 place-items-center rounded-full font-display font-bold text-white', ring && 'ring-2 ring-white')}
+      className={cx('grid shrink-0 place-items-center rounded-full font-display font-bold text-snow', ring && 'ring-2 ring-white')}
       style={{ width: size, height: size, fontSize: size * 0.38, background: `linear-gradient(135deg, ${hue[0]}, ${hue[1]})` }}
       aria-hidden
     >
@@ -57,7 +60,7 @@ export const ModeIcon = ({ mode, size = 16, className }: { mode: Mode; size?: nu
 export function PartnerBadge({ mode, className }: { mode: Mode; className?: string }) {
   const p = PARTNER[mode]
   return (
-    <span className={cx('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold text-white', className)} style={{ background: p.color }}>
+    <span className={cx('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold text-snow', className)} style={{ background: p.color }}>
       <ModeIcon mode={mode} size={11} />
       {p.name}
     </span>

@@ -6,7 +6,7 @@ import CrewView from './CrewView'
 import { PayView, ProcessingView, SuccessView } from './Checkout'
 import { getCity, getReel } from '../../lib/mockData'
 import { defaultConfig, priceTrip, type TripConfig } from '../../lib/pricing'
-import { useApp, useUI, type SheetStep } from '../../lib/store'
+import { useApp, useUI, type SheetStep, withPrefs } from '../../lib/store'
 
 const ORDER: SheetStep[] = ['build', 'crew', 'pay', 'processing', 'success']
 
@@ -24,7 +24,7 @@ export default function CloneTripSheet() {
   // fresh config whenever the sheet opens for a reel
   useEffect(() => {
     if (sheet.open && reel) {
-      const base = sheet.config ?? defaultConfig(reel, origin)
+      const base = sheet.config ?? withPrefs(defaultConfig(reel, origin))
       setCfg(sheet.step === 'crew' ? { ...base, travelers: Math.max(base.travelers, 4) } : base)
       setShare(sheet.step === 'crew')
       setTripId(null)
@@ -48,7 +48,7 @@ export default function CloneTripSheet() {
   const locked = step === 'processing'
 
   return (
-    <BottomSheet open={sheet.open} onClose={() => !locked && closeSheet()} height="88%" label="Clone this trip">
+    <BottomSheet open={sheet.open} onClose={() => !locked && closeSheet()} height="88%" label="Take me there">
       {reel && cfg && price && (
         <div className="relative min-h-0 flex-1">
           <AnimatePresence initial={false} custom={dir} mode="popLayout">

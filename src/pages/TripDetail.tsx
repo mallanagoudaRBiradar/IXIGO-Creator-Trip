@@ -2,22 +2,14 @@ import { motion } from 'framer-motion'
 import { useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { QRCodeSVG } from 'qrcode.react'
-import { ArrowLeft, BedDouble, Coffee, Landmark, LogOut, Mountain, Navigation, Sparkles, Utensils, Waves } from 'lucide-react'
+import { ArrowLeft, BedDouble, LogOut, Map as MapIcon, Navigation } from 'lucide-react'
 import Ticket from '../components/Ticket'
+import { PIN_STYLE } from '../components/pinStyle'
 import { Avatar, SmartImage } from '../components/ui'
-import { getCity, getReel, type City, type PinKind, type Reel } from '../lib/mockData'
+import { getCity, getReel, type City, type Reel } from '../lib/mockData'
 import { buildTimeline, daysUntil, type TimelineItem } from '../lib/trip'
-import { useApp, type Trip } from '../lib/store'
+import { useApp, useUI, type Trip } from '../lib/store'
 import { cx, fmtDate, weekday } from '../lib/utils'
-
-const PIN_STYLE: Record<PinKind, { icon: typeof Coffee; color: string }> = {
-  cafe: { icon: Coffee, color: '#F59E0B' },
-  viewpoint: { icon: Mountain, color: '#38D9C0' },
-  beach: { icon: Waves, color: '#0EA5E9' },
-  food: { icon: Utensils, color: '#E8384F' },
-  activity: { icon: Sparkles, color: '#8B5CF6' },
-  heritage: { icon: Landmark, color: '#FF9A4D' },
-}
 
 export default function TripDetail() {
   const { id } = useParams()
@@ -27,6 +19,7 @@ export default function TripDetail() {
   const days = useMemo(() => (trip && reel ? buildTimeline(trip, reel) : []), [trip, reel])
   const [activeDay, setActiveDay] = useState(1)
   const scroller = useRef<HTMLDivElement>(null)
+  const openMap = useUI((s) => s.openMap)
 
   if (!trip || !reel) {
     return (
@@ -64,7 +57,7 @@ export default function TripDetail() {
         <SmartImage src={reel.scenes[0].img} alt={reel.destination.name} fallback={reel.fallback} className="absolute inset-0 h-full w-full" />
         <div className="absolute inset-0 bg-gradient-to-t from-ixi-night via-ixi-night/40 to-black/30" />
         <div className="pt-safe absolute inset-x-0 top-0 px-4">
-          <button onClick={() => navigate('/trips')} aria-label="Back to trips" className="mt-1 grid h-9 w-9 place-items-center rounded-full bg-black/40 backdrop-blur">
+          <button onClick={() => navigate('/trips')} aria-label="Back to trips" className="theme-dark mt-1 grid h-9 w-9 place-items-center rounded-full bg-black/40 backdrop-blur">
             <ArrowLeft size={18} />
           </button>
         </div>
@@ -82,9 +75,12 @@ export default function TripDetail() {
       {/* creator strip */}
       <div className="mx-5 mt-1 flex items-center gap-3 rounded-2xl bg-white/[.04] p-3">
         <Avatar name={reel.creator.name} hue={reel.creator.hue} size={36} />
-        <p className="text-[12px] leading-snug text-white/70">
+        <p className="flex-1 text-[12px] leading-snug text-white/70">
           <span className="font-semibold text-white">@{reel.creator.handle}</span> tagged {reel.pins.length} spots for this trip. They're pinned to the right day below.
         </p>
+        <button onClick={() => openMap(reel.id)} className="flex shrink-0 items-center gap-1.5 rounded-xl bg-ixi-orange px-3 py-2 text-[12px] font-bold">
+          <MapIcon size={14} /> Map
+        </button>
       </div>
 
       {/* day tabs */}
@@ -137,12 +133,12 @@ function Item({ item, trip, reel, origin, stayName, stayImg }: { item: TimelineI
           from={origin}
           to={{ code: reel.destination.code, name: reel.destination.name }}
           reverse={item.reverse}
-          notch="#060B22"
+          notch="rgb(var(--c-night))"
           qr={`${trip.bookingId}|${trip.pnr}|${item.reverse ? 'RET' : 'OUT'}`}
           footer={
-            <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[11px] text-ixi-night/55">
-              <div>PNR<div className="text-[14px] font-extrabold text-ixi-night">{trip.pnr}</div></div>
-              <div>Seat<div className="text-[14px] font-extrabold text-ixi-night">{seat}</div></div>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[11px] text-abyss/55">
+              <div>PNR<div className="text-[14px] font-extrabold text-abyss">{trip.pnr}</div></div>
+              <div>Seat<div className="text-[14px] font-extrabold text-abyss">{seat}</div></div>
               <div className="col-span-2 flex items-center gap-1.5 font-semibold text-ctkt">
                 <span className="relative flex h-2 w-2"><span className="ping-soft absolute inline-flex h-full w-full rounded-full bg-ctkt" /><span className="relative h-2 w-2 rounded-full bg-ctkt" /></span>
                 On time, live status
@@ -162,7 +158,7 @@ function Item({ item, trip, reel, origin, stayName, stayImg }: { item: TimelineI
               <div className="truncate font-display text-[16px] font-bold">{stayName}</div>
               <div className="text-[12px] text-white/50">{reel.nights} nights, voucher {trip.bookingId.replace('IXR', 'HTL')}</div>
             </div>
-            <div className="rounded-lg bg-white p-1.5"><QRCodeSVG value={`${trip.bookingId}|HOTEL`} size={44} fgColor="#060B22" /></div>
+            <div className="rounded-lg bg-snow p-1.5"><QRCodeSVG value={`${trip.bookingId}|HOTEL`} size={44} fgColor="#060B22" /></div>
           </div>
           <div className="border-t border-white/5 px-3 py-2 text-[12px] text-white/55">Show this at reception. ID needed for every guest.</div>
         </div>
@@ -201,7 +197,7 @@ function Dot({ item }: { item: TimelineItem }) {
   const Icon = item.kind === 'pin' ? PIN_STYLE[item.pin.kind].icon : null
   return (
     <span className="absolute -left-[38px] top-0 grid h-6 w-6 place-items-center rounded-full border-2 border-ixi-night" style={{ background: color }}>
-      {Icon && <Icon size={12} className="text-ixi-night" />}
+      {Icon && <Icon size={12} className="text-abyss" />}
     </span>
   )
 }

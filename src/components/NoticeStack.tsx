@@ -7,7 +7,7 @@ export default function NoticeStack() {
   const notices = useUI((s) => s.notices)
   const dismiss = useUI((s) => s.dismiss)
   return (
-    <div className="pointer-events-none absolute inset-x-2.5 top-[max(env(safe-area-inset-top),10px)] z-[90] flex flex-col gap-2 sm:top-12" aria-live="polite">
+    <div className="theme-dark pointer-events-none absolute inset-x-2.5 top-[max(env(safe-area-inset-top),10px)] z-[90] flex flex-col gap-2 sm:top-12" aria-live="polite">
       <AnimatePresence initial={false}>
         {notices.map((n) => (
           <motion.button

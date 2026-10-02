@@ -36,8 +36,8 @@ Open **http://localhost:5173**.
 Run through this in order. Every step is live, nothing is a static screenshot.
 
 1. **Feed.** Swipe (or use the arrow keys or the arrows beside the phone on desktop). Tap the right or left side of a reel to skip scenes, tap the middle to pause, **double-tap to like**.
-2. **Change city.** Tap the 📍 chip at top-left, pick **Delhi** or tap **Use my current location**. Every "Clone this trip" price updates instantly.
-3. **Clone this trip.** The sheet slides up with the whole trip priced from your city.
+2. **Change city.** Tap the 📍 chip at top-left, pick **Delhi** or tap **Use my current location**. Every "Take me there" price updates instantly.
+3. **Take me there.** The sheet slides up with the whole trip priced from your city.
    - Switch **Flight / Bus / Train**. The boarding pass flips, and the train shows a ConfirmTkt confirmation probability.
    - Hit **Smart Swap**: Budget, Standard, Luxury. Hotel, photo and total animate in place.
    - Change dates (weekends cost more) or travellers (rooms auto-calculate).
@@ -57,7 +57,7 @@ To start over, click **Reset demo data** in the desktop side panel, or clear sit
 | --- | --- |
 | Vertical swipe feed | `pages/Feed.tsx`, `components/ReelPlayer.tsx` (CSS snap-scrolling plus Ken Burns scenes, captions, progress bars) |
 | AI vibe tags | Vibe chips on every reel, filterable in **Explore** |
-| Clone This Trip CTA | Persistent glowing CTA with a live "from" price for the viewer's city |
+| Take me there CTA | Persistent glowing CTA with a live "from" price for the viewer's city |
 | Dynamic geolocation pricing | `lib/pricing.ts` (`nearestCity`, `distanceKm`, `quoteTransport`) plus `components/OriginPicker.tsx` |
 | Smart Swap engine | Stay tiers and transport modes in `components/clone/BuildView.tsx` |
 | Dream Boards and price-drop alerts | `pages/Dreams.tsx`, push-style banners in `components/NoticeStack.tsx` |
@@ -66,6 +66,18 @@ To start over, click **Reset demo data** in the desktop side panel, or clear sit
 | Tiered Gem rewards | `pages/Creator.tsx`, Gems credited on every booking and redeemable at checkout |
 | Creator analytics | `pages/Creator.tsx` |
 | In-Trip Companion | `pages/TripDetail.tsx`, `lib/trip.ts` builds the travel-aware timeline |
+| Creator channels | `pages/Channel.tsx` at `/c/:handle`: banner, subscribers, Subscribe + notification bell, Trips and About tabs. Tap any avatar or @handle to open one |
+| Subscriptions | `pages/Subscriptions.tsx` (Channels tab), the My Channels feed tab, creator search and Top creators in Explore. Shared buttons in `components/social.tsx` |
+| Live comments | `components/CommentsSheet.tsx` (post, reply, like, delete, pinned creator replies, Top/Newest) and `lib/live.ts` (live stream and on-reel ticker). Open tabs sync through `localStorage` |
+| Share a trip | `components/ShareSheet.tsx`: WhatsApp, Telegram, X, SMS, email, native share, copy link and QR. Links (`/?reel=…&ref=share`) land on the reel and greet the visitor |
+| Creator Q&A | "Ask me" box and Q&A tab in `pages/Channel.tsx`; upvotes, pinned answers. Creators "answer" in seconds via `components/Simulator.tsx` |
+| You | `pages/You.tsx`: watch history, liked, saved, your comments and questions, subscriptions, Creator Hub, and Hidden & blocked |
+| New-upload alerts | Subscribing or ringing the bell schedules the creator's next trip (`UPCOMING` in `lib/mockData.ts`); push banner, NEW badges, orange dots and a Channels tab badge |
+| Trip map | `components/MapSheet.tsx` + `TripMap.tsx` (Leaflet, animated route, day filter, Open full route in Google Maps). Explore has a List/Map toggle (`ExploreMap.tsx`) with prices from your city |
+| Leaderboards | `pages/Leaderboard.tsx` (`/leaderboard`): weekly and monthly, per destination, podium, rank movement; your bookings count. "Top Goa guide this month" badges on channels |
+| Moderation | `lib/moderation.ts`: profanity filter (leetspeak, spacing, Hindi slang), blocks links, phone numbers, spam, caps and rapid posting; masks words in existing text. Report, hide and block via `components/ModerationSheet.tsx` |
+| Settings | `pages/Settings.tsx` (`/settings`, ⚙️ on You): edit profile, appearance, trip defaults (departure city, transport, stay style, travellers), playback (autoplay, live comments, data saver, reduce motion), notifications, privacy (pause or clear history, strict comment filter, hidden & blocked, guidelines), download my data, restore defaults, reset app |
+| Light and dark mode | You › Appearance or the ⚙️ Settings sheet (Light, Dark, System). Colours are CSS variables in `index.css` + `tailwind.config.js`; `.theme-dark` keeps reels, photo cards and push banners dark in both modes |
 | Multi-platform routing | ixigo for flights and stays, AbhiBus for buses, ConfirmTkt for trains, with partner colours throughout |
 
 ### Product decisions worth calling out
@@ -120,6 +132,14 @@ src/
 ---
 
 ## Plugging in real data
+
+Everything social is mock data today and is designed to move to a database and AWS later:
+
+- Creators, reels and uploads: `CREATORS`, `REELS`, `UPCOMING` in `lib/mockData.ts`. Real video replaces `scenes`.
+- Comments, Q&A, subscriptions, likes, history and moderation lists live in the persisted Zustand store (`lib/store.ts`). Keep the action names and point them at your API.
+- `components/Simulator.tsx` fakes server events (uploads, creator answers). Replace it with push or websocket handlers that call the same store actions.
+- `lib/moderation.ts` runs in the browser as a first line of defence. Run the same checks on the server before saving.
+- Map tiles come from OpenStreetMap with no key, which is fine for demos. Use a keyed provider (MapTiler, Stadia) for production traffic.
 
 All inventory goes through two functions, so swapping mocks for the real MCP servers is contained:
 

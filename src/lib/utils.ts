@@ -29,4 +29,21 @@ export const uid = (prefix = '') => prefix + Math.random().toString(36).slice(2,
 export const cx = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).join(' ')
 
 export const prefersReducedMotion = () =>
-  typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+  typeof window !== 'undefined' &&
+  (!!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches || !!document.getElementById('phone')?.classList.contains('reduce-motion'))
+
+/** "now", "5m", "3h", "2d", "4w" — the YouTube-style relative stamp */
+export const ago = (ts: number) => {
+  const s = Math.max(0, (Date.now() - ts) / 1000)
+  if (s < 45) return 'now'
+  if (s < 3600) return `${Math.round(s / 60)}m`
+  if (s < 86400) return `${Math.round(s / 3600)}h`
+  if (s < 86400 * 7) return `${Math.round(s / 86400)}d`
+  return `${Math.round(s / (86400 * 7))}w`
+}
+
+/** "2.1M" -> 2100000 */
+export const parseCount = (v: string) => {
+  const n = parseFloat(v)
+  return /m$/i.test(v) ? n * 1e6 : /k$/i.test(v) ? n * 1e3 : n || 0
+}

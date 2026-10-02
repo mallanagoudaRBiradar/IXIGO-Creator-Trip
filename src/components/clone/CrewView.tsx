@@ -77,7 +77,7 @@ export default function CrewView({ reel, cfg, setCfg, price, onBack, onPayShare 
 
       <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto px-4 pb-4">
         {/* WhatsApp preview */}
-        <div className="overflow-hidden rounded-[22px] border border-white/10">
+        <div className="theme-dark overflow-hidden rounded-[22px] border border-white/10">
           <div className="flex items-center gap-2.5 bg-[#1F2C34] px-3 py-2.5">
             <div className="grid h-8 w-8 place-items-center rounded-full bg-[#25D366] text-sm">🌴</div>
             <div className="min-w-0 flex-1">

@@ -1,17 +1,17 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { ChevronDown, ChevronUp, MapPin, Search } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import ReelPlayer from '../components/ReelPlayer'
-import BottomSheet from '../components/BottomSheet'
-import { Avatar } from '../components/ui'
-import { COMMENTS, getCity, getReel, REELS } from '../lib/mockData'
+import CommentsSheet from '../components/CommentsSheet'
+import { getCity, getReel } from '../lib/mockData'
+import { useAllReels } from '../lib/reels'
 import { useApp, useUI } from '../lib/store'
 import { cx } from '../lib/utils'
 
 export default function Feed() {
-  const [params] = useSearchParams()
+  const [params, setParams] = useSearchParams()
   const navigate = useNavigate()
   const scroller = useRef<HTMLDivElement>(null)
   const [active, setActive] = useState(0)
@@ -19,8 +19,20 @@ export default function Feed() {
   const [commentsFor, setCommentsFor] = useState<string | null>(null)
   const { origin, following, onboarded, setOnboarded } = useApp()
   const setPicker = useUI((s) => s.setPicker)
+  const notify = useUI((s) => s.notify)
+  const addHistory = useApp((s) => s.addHistory)
+  const markUploadsSeen = useApp((s) => s.markUploadsSeen)
+  const all = useAllReels()
 
-  const reels = useMemo(() => (tab === 'for' ? REELS : REELS.filter((r) => following.includes(r.creator.handle))), [tab, following])
+  const reels = useMemo(() => (tab === 'for' ? all : all.filter((r) => following.includes(r.creator.handle))), [tab, following, all])
+
+  // reset to the top when switching between For you and My Channels (unless a deep link is pending)
+  useEffect(() => {
+    if (params.get('reel')) return
+    scroller.current?.scrollTo({ top: 0 })
+    setActive(0)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab])
 
   // which reel is on screen
   useEffect(() => {
@@ -34,12 +46,52 @@ export default function Feed() {
     return () => io.disconnect()
   }, [reels])
 
-  // deep link from Explore: /?reel=id
+  // deep links: /?reel=id (Explore, channels, shared links), &comments=1 opens the thread, &ref=share greets new visitors
   useEffect(() => {
     const id = params.get('reel')
-    const idx = reels.findIndex((r) => r.id === id)
-    if (idx > 0 && scroller.current) scroller.current.scrollTo({ top: idx * scroller.current.clientHeight })
+    if (!id) return
+    let idx = reels.findIndex((r) => r.id === id)
+    if (idx < 0 && tab !== 'for') {
+      setTab('for')
+      return
+    }
+    idx = Math.max(0, idx)
+    if (scroller.current) scroller.current.scrollTo({ top: idx * scroller.current.clientHeight })
+    setActive(idx)
+    if (params.get('comments')) setCommentsFor(id)
+    if (params.get('ref') === 'share') {
+      const reel = getReel(id)
+      if (reel) notify({ title: 'A friend shared this trip with you', body: `${reel.title}. Tap Take me there to price it from your city.`, icon: '🎁', tone: 'blue' })
+    }
+    // consume the link so a refresh or tab switch doesn't repeat it
+    setParams({}, { replace: true })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params, reels])
+
+  // a new upload is prepended to the list: keep the viewer on the reel they were watching
+  const activeId = useRef<string | null>(null)
+  useLayoutEffect(() => {
+    const idx = activeId.current ? reels.findIndex((r) => r.id === activeId.current) : -1
+    if (idx >= 0 && idx !== active && scroller.current) {
+      scroller.current.scrollTop = idx * scroller.current.clientHeight
+      setActive(idx)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reels])
+  useEffect(() => {
+    activeId.current = reels[active]?.id ?? null
+  }, [active, reels])
+
+  // watch history, and clear the "new upload" dot once a fresh trip has actually been watched
+  useEffect(() => {
+    const reel = reels[active]
+    if (!reel) return
+    const t = setTimeout(() => {
+      if (!useApp.getState().prefs.pauseHistory) addHistory(reel.id)
+      markUploadsSeen([reel.id])
+    }, 1500)
+    return () => clearTimeout(t)
+  }, [active, reels, addHistory, markUploadsSeen])
 
   useEffect(() => {
     if (active > 0 && !onboarded) setOnboarded()
@@ -62,7 +114,7 @@ export default function Feed() {
   const commentReel = commentsFor ? getReel(commentsFor) : null
 
   return (
-    <div className="relative h-full bg-black">
+    <div className="theme-dark relative h-full bg-black">
       <div ref={scroller} className="no-scrollbar h-full snap-y snap-mandatory overflow-y-scroll overscroll-contain">
         {reels.map((r, i) => (
           <section key={r.id} data-index={i} className="h-full w-full snap-start snap-always" aria-label={r.title}>
@@ -72,9 +124,12 @@ export default function Feed() {
         {reels.length === 0 && (
           <div className="grid h-full place-items-center px-10 text-center">
             <div>
-              <p className="font-display text-2xl font-bold">No one followed yet</p>
-              <p className="mt-2 text-sm text-white/60">Tap the plus on any creator's avatar and their trips will show up here.</p>
-              <button onClick={() => setTab('for')} className="mt-5 rounded-full bg-ixi-orange px-5 py-2.5 text-sm font-bold">Show me trips</button>
+              <p className="font-display text-2xl font-bold">No subscriptions yet</p>
+              <p className="mt-2 text-sm text-white/60">Subscribe to creators and their trips will show up here.</p>
+              <div className="mt-5 flex justify-center gap-2">
+                <button onClick={() => navigate('/subs')} className="rounded-full bg-ixi-orange px-5 py-2.5 text-sm font-bold">Find creators</button>
+                <button onClick={() => setTab('for')} className="rounded-full bg-white/10 px-5 py-2.5 text-sm font-bold">Show me trips</button>
+              </div>
             </div>
           </div>
         )}
@@ -94,7 +149,7 @@ export default function Feed() {
           <div className="pointer-events-auto flex gap-4 text-[15px] font-bold">
             {(['following', 'for'] as const).map((t) => (
               <button key={t} onClick={() => setTab(t)} className={cx('relative pb-1 transition-colors', tab === t ? 'text-white' : 'text-white/55')}>
-                {t === 'for' ? 'For you' : 'Following'}
+                {t === 'for' ? 'For you' : 'My Channels'}
                 {tab === t && <motion.span layoutId="feed-tab" className="absolute inset-x-2 -bottom-0.5 h-[3px] rounded-full bg-white" />}
               </button>
             ))}
@@ -123,26 +178,7 @@ export default function Feed() {
         )}
       </AnimatePresence>
 
-      <BottomSheet open={!!commentReel} onClose={() => setCommentsFor(null)} label="Comments" height="58%">
-        {commentReel && (
-          <div className="flex min-h-0 flex-1 flex-col">
-            <h2 className="px-5 pb-3 text-center text-sm font-bold">{commentReel.comments.toLocaleString('en-IN')} comments</h2>
-            <ul className="no-scrollbar flex-1 space-y-4 overflow-y-auto px-5 pb-6">
-              {COMMENTS.map((c) => (
-                <li key={c.user} className="flex gap-3">
-                  <Avatar name={c.user.replace(/[._]/g, ' ')} hue={['#24316A', '#F57224']} size={34} />
-                  <div className="text-sm">
-                    <div className="text-xs text-white/50">
-                      {c.user} <span className="ml-1">{c.time}</span>
-                    </div>
-                    <p className="mt-0.5 leading-snug">{c.text}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </BottomSheet>
+      <CommentsSheet reel={commentReel ?? null} onClose={() => setCommentsFor(null)} />
     </div>
   )
 }

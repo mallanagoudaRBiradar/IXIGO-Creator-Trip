@@ -1,5 +1,6 @@
 import { AnimatePresence, motion, useDragControls } from 'framer-motion'
 import { useEffect, type ReactNode } from 'react'
+import { useResolvedTheme } from '../lib/theme'
 import { cx } from '../lib/utils'
 
 interface Props {
@@ -14,6 +15,7 @@ interface Props {
 
 export default function BottomSheet({ open, onClose, children, height, z = 50, label, className }: Props) {
   const controls = useDragControls()
+  const theme = useResolvedTheme()
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
@@ -39,7 +41,7 @@ export default function BottomSheet({ open, onClose, children, height, z = 50, l
             role="dialog"
             aria-modal="true"
             aria-label={label}
-            className={cx('absolute inset-x-0 bottom-0 flex max-h-[92%] flex-col overflow-hidden rounded-t-[30px] border-t border-white/10 bg-ixi-navy shadow-[0_-20px_60px_rgba(0,0,0,.5)]', className)}
+            className={cx(theme === 'light' ? 'theme-light' : 'theme-dark', 'absolute inset-x-0 bottom-0 flex max-h-[92%] flex-col overflow-hidden rounded-t-[30px] border-t border-white/10 bg-ixi-navy shadow-[0_-20px_60px_rgba(0,0,0,.5)]', className)}
             style={{ zIndex: z + 1, height }}
             initial={{ y: '100%' }}
             animate={{ y: 0 }}

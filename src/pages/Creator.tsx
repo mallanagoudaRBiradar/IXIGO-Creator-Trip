@@ -5,10 +5,10 @@ import UploadSheet from '../components/UploadSheet'
 import { AnimatedNumber, Avatar, PageHeader, SmartImage } from '../components/ui'
 import { getReel, img } from '../lib/mockData'
 import { useApp, useUI } from '../lib/store'
-import { cx } from '../lib/utils'
+import { compact, cx } from '../lib/utils'
 
 const TIERS = [
-  { name: 'Scout', at: 0, perks: 'Gems on every cloned booking' },
+  { name: 'Scout', at: 0, perks: 'Gems on every booking you inspire' },
   { name: 'Voyager', at: 50, perks: '1.5x Gems and zero convenience fees' },
   { name: 'Guru', at: 250, perks: 'Cash payouts, lounge access and an Expert badge' },
 ]
@@ -52,7 +52,7 @@ export default function Creator() {
         <Avatar name={me.name} hue={me.hue} size={56} />
         <div>
           <div className="font-display text-[18px] font-bold">{me.name}</div>
-          <div className="text-[13px] text-white/55">@{me.handle}, {me.followers} followers</div>
+          <div className="text-[13px] text-white/55">@{me.handle}, {compact(me.subscribers)} subscribers</div>
         </div>
       </div>
 
@@ -77,7 +77,7 @@ export default function Creator() {
             const reached = CLONES >= t.at
             return (
               <div key={t.name} className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2" style={{ left: `${left}%` }}>
-                <span className={cx('block h-4 w-4 rounded-full border-[3px]', i === 0 && 'translate-x-1/2', i === 2 && '-translate-x-1/2', reached ? 'border-ixi-ember bg-white' : 'border-white/30 bg-ixi-navy')} />
+                <span className={cx('block h-4 w-4 rounded-full border-[3px]', i === 0 && 'translate-x-1/2', i === 2 && '-translate-x-1/2', reached ? 'border-ixi-ember bg-snow' : 'border-white/30 bg-ixi-navy')} />
               </div>
             )
           })}
@@ -97,7 +97,7 @@ export default function Creator() {
 
       {/* metrics */}
       <section className="mt-4 grid grid-cols-3 gap-2.5 px-5">
-        <Metric icon={Repeat2} label="Trips cloned" value={CLONES} delta="+12 this week" />
+        <Metric icon={Repeat2} label="Trips booked" value={CLONES} delta="+12 this week" />
         <Metric icon={Gem} label="Gems earned" value={gems} delta="+2,140 this week" />
         <Metric icon={Hourglass} label="Pending" value={3120} delta="Credited after travel" suffix=" Gems" muted />
       </section>
@@ -105,14 +105,14 @@ export default function Creator() {
       {/* chart */}
       <section className="mx-5 mt-4 rounded-[24px] bg-white/[.03] p-4">
         <div className="flex items-baseline justify-between">
-          <h2 className="font-display text-[17px] font-bold">Clones, last 14 days</h2>
+          <h2 className="font-display text-[17px] font-bold">Bookings, last 14 days</h2>
           <span className="text-[12px] text-white/50">{hoverBar !== null ? `${DAILY[hoverBar]} on day ${hoverBar + 1}` : `${DAILY.reduce((a, b) => a + b, 0)} total`}</span>
         </div>
         <div className="mt-4 flex h-28 items-end gap-1.5" onMouseLeave={() => setHoverBar(null)}>
           {DAILY.map((v, i) => (
             <button
               key={i}
-              aria-label={`Day ${i + 1}: ${v} clones`}
+              aria-label={`Day ${i + 1}: ${v} bookings`}
               onMouseEnter={() => setHoverBar(i)}
               onClick={() => setHoverBar(i)}
               className="flex h-full flex-1 items-end"

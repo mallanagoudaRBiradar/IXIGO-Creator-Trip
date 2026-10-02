@@ -123,7 +123,7 @@ export default function UploadSheet({ open, startAt, reelTitle, onClose, onVerif
                 <BadgeCheck size={44} className="text-verify" />
               </motion.div>
               <h2 className="mt-5 font-display text-[26px] font-extrabold">Live with a Verified trip badge</h2>
-              <p className="mt-2 text-[14px] text-white/60">Viewers can now clone this trip. You earn Gems on every booking it inspires.</p>
+              <p className="mt-2 text-[14px] text-white/60">Viewers can now book this exact trip. You earn Gems on every booking it inspires.</p>
               <button onClick={onClose} className="mt-8 w-full rounded-2xl bg-ixi-orange py-3.5 font-display text-[16px] font-extrabold">Back to dashboard</button>
             </div>
           )}

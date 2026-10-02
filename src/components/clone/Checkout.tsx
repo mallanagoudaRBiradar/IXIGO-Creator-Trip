@@ -84,7 +84,7 @@ export function PayView({ reel, cfg, price, share, onBack, onPaid }: Base & { sh
             <span className="text-white/50">Redeem {(250 * 4).toLocaleString('en-IN')} Gems for {inr(250)} off</span>
           </span>
           <span className={cx('relative h-6 w-11 rounded-full transition-colors', useGems ? 'bg-ixi-orange' : 'bg-white/15')}>
-            <motion.span layout className={cx('absolute top-0.5 h-5 w-5 rounded-full bg-white', useGems ? 'right-0.5' : 'left-0.5')} />
+            <motion.span layout className={cx('absolute top-0.5 h-5 w-5 rounded-full bg-snow', useGems ? 'right-0.5' : 'left-0.5')} />
           </span>
         </button>
 
@@ -221,8 +221,8 @@ export function SuccessView({ reel, cfg, price, tripId }: Base & { tripId: strin
         Tickets, stay and {reel.creator.name.split(' ')[0]}'s map are ready in your Trips tab.
       </p>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }} className="mt-6 w-full rounded-[20px] bg-ixi-paper p-4 text-left text-ixi-night">
-        <div className="flex justify-between text-[12px] text-ixi-night/55">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }} className="mt-6 w-full rounded-[20px] bg-ixi-paper p-4 text-left text-abyss">
+        <div className="flex justify-between text-[12px] text-abyss/55">
           <span>Booking ID</span>
           <span>PNR</span>
         </div>

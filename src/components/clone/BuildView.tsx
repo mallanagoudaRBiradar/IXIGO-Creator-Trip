@@ -6,7 +6,7 @@ import Ticket from '../Ticket'
 import { AnimatedNumber, ModeIcon, SmartImage } from '../ui'
 import { getCity, PARTNER, type Mode, type Reel, type Tier } from '../../lib/mockData'
 import { nextFriday, quoteTransport, type PriceBreakdown, type TripConfig } from '../../lib/pricing'
-import { useApp, useUI } from '../../lib/store'
+import { useApp, useUI, canNotify } from '../../lib/store'
 import { addDays, cx, fmtDate, inr, toISODate, weekday } from '../../lib/utils'
 
 interface Props {
@@ -55,6 +55,8 @@ export default function BuildView({ reel, cfg, setCfg, price, onBook, onCrew }: 
     const drop = Math.max(500, Math.round((d.currentPrice * 0.07) / 50) * 50)
     window.setTimeout(() => {
       dropDreamPrice(d.id, drop)
+      // the price still drops on the Dream Board; the push only shows if price alerts are on
+      if (!canNotify('priceDrops')) return
       notify({
         title: `Fares dropped by ${inr(drop)}`,
         body: `Your saved ${reel.destination.name} trip from ${origin.name} is now ${inr(d.currentPrice - drop)}.`,
@@ -73,7 +75,7 @@ export default function BuildView({ reel, cfg, setCfg, price, onBook, onCrew }: 
     <>
       <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto pb-4">
         {/* header */}
-        <div className="relative mx-4 h-36 overflow-hidden rounded-3xl">
+        <div className="theme-dark relative mx-4 h-36 overflow-hidden rounded-3xl">
           <SmartImage src={reel.scenes[0].img} alt={reel.destination.name} fallback={reel.fallback} className="absolute inset-0 h-full w-full" />
           <div className="absolute inset-0 bg-gradient-to-t from-ixi-night via-ixi-night/40 to-transparent" />
           <div className="absolute inset-x-4 bottom-3.5">
@@ -152,7 +154,7 @@ export default function BuildView({ reel, cfg, setCfg, price, onBook, onCrew }: 
                   style={on ? { borderColor: PARTNER[m].color } : undefined}
                   aria-pressed={on}
                 >
-                  {reel.recommendedMode === m && <span className="absolute -top-2 right-2 rounded-full bg-verify px-1.5 py-px text-[9px] font-bold text-ixi-night">Creator's pick</span>}
+                  {reel.recommendedMode === m && <span className="absolute -top-2 right-2 rounded-full bg-verify px-1.5 py-px text-[9px] font-bold text-abyss">Creator's pick</span>}
                   <span className="flex items-center gap-1.5 text-[12px] font-bold" style={{ color: PARTNER[m].color }}>
                     <ModeIcon mode={m} size={14} /> {PARTNER[m].label}
                   </span>
@@ -197,7 +199,7 @@ export default function BuildView({ reel, cfg, setCfg, price, onBook, onCrew }: 
                 </motion.div>
               </AnimatePresence>
               {cfg.tier === reel.recommendedTier && (
-                <span className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-black/55 px-2 py-1 text-[11px] font-bold text-verify backdrop-blur">
+                <span className="theme-dark absolute left-3 top-3 flex items-center gap-1 rounded-full bg-black/55 px-2 py-1 text-[11px] font-bold text-verify backdrop-blur">
                   <BadgeCheck size={12} /> {reel.creator.name.split(' ')[0]} stayed here
                 </span>
               )}
@@ -264,7 +266,7 @@ export default function BuildView({ reel, cfg, setCfg, price, onBook, onCrew }: 
             {price.experiences > 0 && <Row k="Experiences" v={inr(price.experiences)} />}
             <Row k="Bundle discount" v={`−${inr(price.bundleDiscount)}`} green />
             {price.fareDrop > 0 && <Row k="Dream Board fare drop" v={`−${inr(price.fareDrop)}`} green />}
-            <Row k="Convenience fee" v="Free on cloned trips" green />
+            <Row k="Convenience fee" v="Free on creator trips" green />
             <div className="flex items-center justify-between border-t border-white/10 pt-2.5 text-[15px] font-bold">
               <dt>Total</dt>
               <dd><AnimatedNumber value={price.total} /></dd>
@@ -330,7 +332,7 @@ function TicketFooter({ mode, price, travelers }: { mode: Mode; price: PriceBrea
   const q = price.transport
   return (
     <div className="flex items-center justify-between gap-3">
-      <div className="min-w-0 text-[12px] leading-snug text-ixi-night/65">
+      <div className="min-w-0 text-[12px] leading-snug text-abyss/65">
         {mode === 'train' && q.confirmChance ? (
           <>
             <span className="font-bold text-ctkt">{q.confirmChance}% chance</span> of confirmation
@@ -345,8 +347,8 @@ function TicketFooter({ mode, price, travelers }: { mode: Mode; price: PriceBrea
         )}
       </div>
       <div className="shrink-0 text-right">
-        <div className="text-[16px] font-extrabold tabular-nums text-ixi-night">{inr(q.total)}</div>
-        <div className="text-[10px] text-ixi-night/50">{travelers} traveller{travelers > 1 ? 's' : ''}</div>
+        <div className="text-[16px] font-extrabold tabular-nums text-abyss">{inr(q.total)}</div>
+        <div className="text-[10px] text-abyss/50">{travelers} traveller{travelers > 1 ? 's' : ''}</div>
       </div>
     </div>
   )

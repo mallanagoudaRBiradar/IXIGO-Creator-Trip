@@ -16,7 +16,7 @@ export default function Trips() {
       {trips.length === 0 ? (
         <div className="mx-5 mt-10 rounded-3xl border border-dashed border-white/15 p-8 text-center">
           <p className="font-display text-xl font-bold">No trips booked yet</p>
-          <p className="mt-2 text-sm text-white/55">Clone a trip from any reel and it will appear here with your tickets.</p>
+          <p className="mt-2 text-sm text-white/55">Tap Take me there on any reel and your trip will appear here with your tickets.</p>
           <button onClick={() => navigate('/')} className="mt-5 rounded-full bg-ixi-orange px-5 py-2.5 text-sm font-bold">Browse reels</button>
         </div>
       ) : (
@@ -32,7 +32,7 @@ export default function Trips() {
                   <div className="relative h-40">
                     <SmartImage src={reel.scenes[0].img} alt={reel.destination.name} fallback={reel.fallback} className="h-full w-full" />
                     <div className="absolute inset-0 bg-gradient-to-t from-ixi-navy via-ixi-navy/30 to-transparent" />
-                    <span className="absolute right-3 top-3 rounded-full bg-black/50 px-3 py-1 text-[12px] font-bold backdrop-blur">
+                    <span className="theme-dark absolute right-3 top-3 rounded-full bg-black/50 px-3 py-1 text-[12px] font-bold backdrop-blur">
                       {n > 1 ? `In ${n} days` : n === 1 ? 'Tomorrow' : n === 0 ? 'Today' : 'Completed'}
                     </span>
                     <div className="absolute inset-x-4 bottom-3">
@@ -49,7 +49,7 @@ export default function Trips() {
                     <span className="ml-auto font-semibold tabular-nums text-white">{inr(t.paidByYou)}</span>
                   </div>
                   <div className="flex items-center gap-1.5 border-t border-white/5 px-4 py-2.5 text-[12px] text-white/50">
-                    <BadgeCheck size={13} className="text-verify" /> Cloned from @{reel.creator.handle}
+                    <BadgeCheck size={13} className="text-verify" /> Inspired by @{reel.creator.handle}
                   </div>
                 </Link>
               </motion.li>

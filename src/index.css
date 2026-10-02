@@ -3,9 +3,45 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: dark;
   -webkit-tap-highlight-color: transparent;
 }
+
+/* ---- Themes ----------------------------------------------------------------
+   Channels are "r g b" so Tailwind can apply opacity (bg-white/10 etc).
+   Dark is the default; #phone gets .theme-light when the viewer picks light mode.
+   .theme-dark forces dark inside light mode, for surfaces that are always dark
+   (the reel player, photos with text on them, push banners, the WhatsApp chat). */
+:root, .theme-dark {
+  --c-fg: 255 255 255;
+  --c-night: 6 11 34;
+  --c-navy: 13 24 64;
+  --c-ink: 21 33 79;
+  --c-line: 36 49 106;
+  --c-ember: 255 154 77;
+  --c-verify: 56 217 192;
+  --c-gold: 251 191 36;
+  --c-danger: 255 138 154;
+  --c-link: 56 189 248;
+  color-scheme: dark;
+}
+.theme-light {
+  --c-fg: 13 20 48;
+  --c-night: 244 246 251;
+  --c-navy: 255 255 255;
+  --c-ink: 234 238 247;
+  --c-line: 214 220 235;
+  --c-ember: 214 84 12;
+  --c-verify: 10 150 130;
+  --c-gold: 180 120 10;
+  --c-danger: 214 31 69;
+  --c-link: 2 112 190;
+  color-scheme: light;
+}
+/* text that inherits the theme colour */
+.theme-light, .theme-dark { color: rgb(var(--c-fg)); }
+/* solid brand surfaces always carry white text, in both themes */
+.theme-light :is(.bg-ixi-orange, .bg-ctkt, .bg-abhi, .from-ixi-orange, .bg-gradient-to-br.from-ixi-orange) { --c-fg: 255 255 255; color: #fff; }
+#phone { transition: background-color 0.3s ease; }
 
 html, body, #root { height: 100%; }
 
@@ -58,6 +94,10 @@ body {
   background-size: 14px 14px;
 }
 
+/* Settings › Reduce motion does the same as the OS setting, inside the app */
+.reduce-motion *, .reduce-motion *::before, .reduce-motion *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+.reduce-motion .cta-sweep::after { display: none; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
   .cta-sweep::after { display: none; }
@@ -65,3 +105,45 @@ body {
 
 /* Inside the desktop phone frame, leave room for the fake status bar */
 @media (min-width: 640px) { .pt-safe { padding-top: 46px; } }
+
+/* ---- Maps (Leaflet) ------------------------------------------------------ */
+.leaflet-container { background: #0a1130; font-family: inherit; }
+/* turn light OSM tiles into a navy night map */
+.leaflet-tile-pane { filter: invert(1) hue-rotate(195deg) brightness(0.82) contrast(0.92) saturate(0.55); }
+.theme-light .leaflet-container { background: #e9edf5; }
+.theme-light .leaflet-tile-pane { filter: saturate(0.85) contrast(0.95); }
+.theme-light .leaflet-control-attribution { background: rgba(255, 255, 255, 0.8) !important; color: rgba(13, 20, 48, 0.6) !important; }
+.theme-light .leaflet-control-attribution a { color: rgba(13, 20, 48, 0.8) !important; }
+.leaflet-control-attribution { background: rgba(6, 11, 34, 0.7) !important; color: rgba(255, 255, 255, 0.5) !important; font-size: 9px !important; }
+.leaflet-control-attribution a { color: rgba(255, 255, 255, 0.7) !important; }
+.leaflet-control-zoom a { background: #15214F !important; color: #fff !important; border-color: #24316A !important; }
+
+.map-pin {
+  display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50% 50% 50% 0;
+  background: var(--c); transform: rotate(-45deg); border: 2px solid rgb(var(--c-night));
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5); transition: transform 0.25s, opacity 0.35s;
+}
+.map-pin > span { transform: rotate(45deg); color: #060B22; font-weight: 800; font-size: 12px; }
+.map-pin.is-pending { opacity: 0; transform: rotate(-45deg) scale(0.4); }
+.map-pin.is-active { transform: rotate(-45deg) scale(1.3); border-color: #fff; }
+
+.map-head { width: 14px; height: 14px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 5px rgba(245, 114, 36, 0.45), 0 0 16px #F57224; }
+
+.price-pin {
+  white-space: nowrap; transform: translate(-50%, -100%); display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 9px; border-radius: 999px; background: #fff; color: #060B22; font-weight: 800; font-size: 12px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45); transition: background 0.2s, color 0.2s, transform 0.2s;
+}
+.price-pin small { font-weight: 600; opacity: 0.6; font-size: 10px; }
+.price-pin.is-active { background: #F57224; color: #fff; transform: translate(-50%, -100%) scale(1.12); }
+/* neighbours too close to share a spot sit either side of their point */
+.price-pin.side-l { transform: translate(calc(-100% - 2px), -50%); }
+.price-pin.side-r { transform: translate(2px, -50%); }
+.price-pin.side-l.is-active { transform: translate(calc(-100% - 2px), -50%) scale(1.12); }
+.price-pin.side-r.is-active { transform: translate(2px, -50%) scale(1.12); }
+
+.origin-dot { width: 16px; height: 16px; border-radius: 50%; background: #3B82F6; border: 3px solid #fff; box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.3); }
+@keyframes pin-pop { 0% { transform: rotate(-45deg) scale(0.3); } 70% { transform: rotate(-45deg) scale(1.2); } 100% { transform: rotate(-45deg) scale(1); } }
+.map-pin.pop:not(.is-active) { animation: pin-pop 0.35s ease-out; }
+/* hide hairline seams between tiles on high-DPI screens */
+.leaflet-tile-container img.leaflet-tile { width: 256.5px !important; height: 256.5px !important; }

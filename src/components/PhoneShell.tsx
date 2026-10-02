@@ -2,15 +2,18 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import { Battery, ChevronDown, ChevronUp, Signal, Wifi } from 'lucide-react'
 import { useLocation } from 'react-router-dom'
+import { useResolvedTheme } from '../lib/theme'
+import { useApp } from '../lib/store'
+import { cx } from '../lib/utils'
 
-function StatusBar() {
+function StatusBar({ light }: { light: boolean }) {
   const [now, setNow] = useState(() => new Date())
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 20000)
     return () => clearInterval(t)
   }, [])
   return (
-    <div className="pointer-events-none absolute inset-x-0 top-0 z-[80] hidden h-11 items-center justify-between px-8 text-[13px] font-semibold text-white sm:flex">
+    <div className={cx('pointer-events-none absolute inset-x-0 top-0 z-[80] hidden h-11 items-center justify-between px-8 text-[13px] font-semibold sm:flex', light ? 'text-abyss' : 'text-snow')}>
       <span className="tabular-nums">{now.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: false })}</span>
       <div className="absolute left-1/2 top-2.5 h-[26px] w-[104px] -translate-x-1/2 rounded-full bg-black" />
       <span className="flex items-center gap-1.5">
@@ -24,10 +27,10 @@ function DesktopPitch() {
   const url = typeof window !== 'undefined' ? window.location.origin : ''
   const isLocalhost = /localhost|127\.0\.0\.1/.test(url)
   return (
-    <aside className="hidden w-[400px] shrink-0 lg:block">
+    <aside className="theme-dark hidden w-[400px] shrink-0 lg:block">
       <div className="flex items-center gap-2.5">
         <div className="grid h-10 w-10 place-items-center rounded-xl bg-ixi-orange">
-          <svg viewBox="0 0 24 24" className="h-5 w-5 fill-white"><path d="M8 5v14l11-7z" /></svg>
+          <svg viewBox="0 0 24 24" className="h-5 w-5 fill-snow"><path d="M8 5v14l11-7z" /></svg>
         </div>
         <div className="leading-tight">
           <div className="font-display text-lg font-bold">Trip Reels</div>
@@ -45,8 +48,8 @@ function DesktopPitch() {
       <ol className="mt-8 space-y-4">
         {[
           ['Watch', 'Swipe through verified trips matched to your vibe.'],
-          ['Clone', 'The whole itinerary is priced live from where you are.'],
-          ['Go', 'Swap the stay, split with friends, and travel with a day-by-day companion.'],
+          ['Go', 'Tap Take me there and the whole itinerary is priced live from your city.'],
+          ['Travel', 'Swap the stay, split with friends, and travel with a day-by-day companion.'],
         ].map(([t, d], i) => (
           <li key={t} className="flex gap-4">
             <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-white/15 font-display text-sm font-bold text-ixi-ember">{i + 1}</span>
@@ -58,7 +61,7 @@ function DesktopPitch() {
         ))}
       </ol>
       <div className="mt-10 flex items-center gap-5 rounded-2xl border border-white/10 bg-white/[.03] p-4">
-        <div className="rounded-lg bg-white p-2">
+        <div className="rounded-lg bg-snow p-2">
           <QRCodeSVG value={url || 'https://ixigo.com'} size={84} fgColor="#060B22" />
         </div>
         <div className="text-sm text-white/65">
@@ -83,16 +86,37 @@ const press = (key: string) => window.dispatchEvent(new KeyboardEvent('keydown',
 
 export default function PhoneShell({ children }: { children: ReactNode }) {
   const { pathname } = useLocation()
+  const theme = useResolvedTheme()
+  const reduceMotion = useApp((s) => s.prefs.reduceMotion)
+  // the reel feed is always dark, like a video player, so the status bar stays light there
+  const lightChrome = theme === 'light' && pathname !== '/'
+
+  // browser UI colour (address bar on mobile) follows the theme
+  useEffect(() => {
+    let meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')
+    if (!meta) {
+      meta = document.createElement('meta')
+      meta.name = 'theme-color'
+      document.head.appendChild(meta)
+    }
+    meta.content = lightChrome ? '#F4F6FB' : '#060B22'
+  }, [lightChrome])
+
   return (
     <div className="stage flex h-[100dvh] w-full items-center justify-center gap-20 overflow-hidden">
       <DesktopPitch />
       <div className="relative h-full w-full sm:h-auto sm:w-auto">
       <div
         id="phone"
-        className="relative isolate h-[100dvh] w-full overflow-hidden bg-ixi-night sm:h-[min(880px,calc(100dvh-40px))] sm:w-[408px] sm:rounded-[54px] sm:shadow-[0_0_0_11px_#14182b,0_0_0_12px_#2a2f48,0_40px_120px_-20px_rgba(0,0,0,.8)]"
+        className={cx(
+          'relative isolate h-[100dvh] w-full overflow-hidden bg-ixi-night sm:h-[min(880px,calc(100dvh-40px))] sm:w-[408px] sm:rounded-[54px] sm:shadow-[0_0_0_11px_#14182b,0_0_0_12px_#2a2f48,0_40px_120px_-20px_rgba(0,0,0,.8)]',
+          theme === 'light' ? 'theme-light' : 'theme-dark',
+          reduceMotion && 'reduce-motion',
+        )}
+        data-theme={theme}
         style={{ transform: 'translateZ(0)' }}
       >
-        <StatusBar />
+        <StatusBar light={lightChrome} />
         {children}
       </div>
       {pathname === '/' && (
