@@ -1,6 +1,6 @@
 import { animate, useMotionValue } from 'framer-motion'
 import { useEffect, useState, type ReactNode } from 'react'
-import { Bus, Plane, TrainFront } from 'lucide-react'
+import { ArrowLeft, Bus, Plane, TrainFront } from 'lucide-react'
 import { PARTNER, type Mode } from '../lib/mockData'
 import { useApp } from '../lib/store'
 import { cx, inr } from '../lib/utils'
@@ -67,15 +67,20 @@ export function PartnerBadge({ mode, className }: { mode: Mode; className?: stri
   )
 }
 
-export function PageHeader({ title, sub, right }: { title: string; sub?: ReactNode; right?: ReactNode }) {
+export function PageHeader({ title, sub, right, back }: { title: string; sub?: ReactNode; right?: ReactNode; back?: boolean }) {
   return (
     <header className="pt-safe px-5 pb-3">
+      {back && (
+        <button onClick={() => (history.length > 1 ? history.back() : (location.href = '/you'))} aria-label="Back" className="mb-2 mt-1 grid h-9 w-9 place-items-center rounded-full bg-white/[.07]">
+          <ArrowLeft size={18} />
+        </button>
+      )}
       <div className="flex items-end justify-between gap-3 pt-2">
-        <div>
+        <div className="min-w-0">
           <h1 className="font-display text-[30px] font-extrabold leading-none tracking-tight">{title}</h1>
           {sub && <p className="mt-2 max-w-[30ch] text-sm leading-snug text-white/60">{sub}</p>}
         </div>
-        {right}
+        {right && <div className="shrink-0">{right}</div>}
       </div>
     </header>
   )

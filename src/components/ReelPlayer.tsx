@@ -1,7 +1,7 @@
 import { AnimatePresence, motion, useMotionValue, useTransform, type MotionValue } from 'framer-motion'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { BadgeCheck, Bookmark, Heart, MapPin, MessageCircle, Music2, Pause, Plane, Plus, Send, Share2, Sparkles, Volume2, VolumeX } from 'lucide-react'
+import { BadgeCheck, Bookmark, Check, Heart, MapPin, MessageCircle, Music2, Pause, Plane, Plus, Share2, Sparkles } from 'lucide-react'
 import { getCity, type Reel } from '../lib/mockData'
 import { defaultConfig, fromPrice } from '../lib/pricing'
 import { useApp, useUI, withPrefs } from '../lib/store'
@@ -34,7 +34,6 @@ export default function ReelPlayer({ reel, active, onComments }: Props) {
   const [scene, setScene] = useState(0)
   const sceneRef = useRef(0)
   const [paused, setPaused] = useState(false)
-  const [muted, setMuted] = useState(true)
   const [hearts, setHearts] = useState<{ id: number; x: number; y: number }[]>([])
   const [showVerify, setShowVerify] = useState(false)
   const lastTap = useRef(0)
@@ -156,22 +155,6 @@ export default function ReelPlayer({ reel, active, onComments }: Props) {
         <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-black/60 to-transparent" />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[62%] bg-gradient-to-t from-black via-black/55 to-transparent" />
 
-        {/* subtitle */}
-        <div className="pointer-events-none absolute inset-x-0 top-[38%] flex justify-center px-10">
-          <AnimatePresence mode="wait">
-            <motion.p
-              key={scene + reel.id}
-              initial={{ opacity: 0, y: 14, scale: 0.94 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ type: 'spring', damping: 18, stiffness: 260 }}
-              className="text-shadow text-center font-display text-[26px] font-extrabold leading-[1.05] tracking-tight"
-            >
-              {current.caption}
-            </motion.p>
-          </AnimatePresence>
-        </div>
-
         <AnimatePresence>
           {paused && (
             <motion.div initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.3 }} className="pointer-events-none absolute inset-0 grid place-items-center">
@@ -196,126 +179,142 @@ export default function ReelPlayer({ reel, active, onComments }: Props) {
         ))}
       </div>
 
-      {/* scene progress */}
-      <div className="pt-safe pointer-events-none absolute inset-x-0 top-0 flex gap-1 px-3">
-        <div className="mt-[42px] flex flex-1 gap-1">
-          {reel.scenes.map((_, i) => <SceneBar key={i} i={i} elapsed={elapsed} />)}
-        </div>
-      </div>
-
-      {/* right rail */}
-      <div className="absolute bottom-[172px] right-2.5 z-20 flex flex-col items-center gap-[14px]">
-        <div className="relative mb-1">
-          <button onClick={openChannel} aria-label={`Open @${reel.creator.handle}'s channel`} className="block rounded-full">
-            <Avatar name={reel.creator.name} hue={reel.creator.hue} size={46} ring />
-          </button>
-          <button
-            aria-label={following ? `Unsubscribe from ${reel.creator.handle}` : `Subscribe to ${reel.creator.handle}`}
-            onClick={() => {
-              toggleFollow(reel.creator.handle)
-              if (!following) notify({ title: `Subscribed to @${reel.creator.handle}`, body: 'New trips land in My Channels.', icon: '🔔', tone: 'green' })
-            }}
-            className={cx('absolute -bottom-2 left-1/2 grid h-5 w-5 -translate-x-1/2 place-items-center rounded-full text-white transition-colors', following ? 'bg-ctkt' : 'bg-ixi-orange')}
-          >
-            {following ? <BadgeCheck size={12} /> : <Plus size={13} strokeWidth={3} />}
-          </button>
-        </div>
-        <RailButton label={compact(reel.likes + (liked ? 1 : 0))} aria={liked ? 'Unlike' : 'Like'} onClick={() => toggleLike(reel.id)}>
-          <motion.span key={String(liked)} initial={{ scale: 0.6 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 600, damping: 14 }}>
-            <Heart size={30} fill={liked ? '#FF3D57' : 'transparent'} stroke={liked ? '#FF3D57' : 'white'} />
-          </motion.span>
-        </RailButton>
-        <RailButton label={compact(commentCount)} aria="Comments" onClick={onComments}>
-          <MessageCircle size={29} />
-        </RailButton>
-        <RailButton label={saved ? 'Saved' : 'Dream'} aria="Save to Dream Board" onClick={save}>
-          <Bookmark size={28} fill={saved ? '#FF9A4D' : 'transparent'} stroke={saved ? '#FF9A4D' : 'white'} />
-        </RailButton>
-        <RailButton label="Crew" aria="Plan with your crew" onClick={() => openSheet(reel.id, 'crew')}>
-          <Send size={27} />
-        </RailButton>
-        <RailButton label={compact(shareCount)} aria="Share trip" onClick={() => openShare(reel.id)}>
-          <Share2 size={27} />
-        </RailButton>
-        <button aria-label={muted ? 'Unmute' : 'Mute'} onClick={() => setMuted((m) => !m)} className="grid h-9 w-9 place-items-center rounded-full bg-white/10 backdrop-blur">
-          {muted ? <VolumeX size={17} /> : <Volume2 size={17} />}
-        </button>
-      </div>
-
-      {/* bottom info + CTA */}
-      <div className="absolute inset-x-0 bottom-0 z-10 px-3.5 pb-3">
-        <div className="pr-16">
-          {liveTicker && <LiveTicker reel={reel} onOpen={onComments} />}
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
-            <button onClick={openChannel} className="text-shadow max-w-[60%] truncate text-[15px] font-bold hover:underline">@{reel.creator.handle}</button>
-            <SubscribeButton creator={reel.creator} size="sm" />
-            {verified && (
-              <button onClick={() => setShowVerify((v) => !v)} className="flex items-center gap-1 rounded-full bg-verify/20 px-2 py-0.5 text-[11px] font-bold text-verify backdrop-blur" aria-expanded={showVerify}>
-                <BadgeCheck size={13} /> Verified trip
-              </button>
-            )}
+      {/* Overlay UI. A flex column so nothing can overlap: progress bars, the caption in
+          whatever space is left, then the info column + action rail, then the CTA. */}
+      <div className="pointer-events-none absolute inset-0 z-10 flex flex-col">
+        <div className="pt-safe shrink-0 px-3">
+          <div className="mt-[44px] flex gap-1">
+            {reel.scenes.map((_, i) => <SceneBar key={i} i={i} elapsed={elapsed} />)}
           </div>
-          <AnimatePresence>
-            {showVerify && (
-              <motion.p initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="mt-1.5 overflow-hidden rounded-xl bg-black/50 px-3 py-2 text-[12px] leading-snug text-white/85 backdrop-blur">
-                {reel.creator.name.split(' ')[0]} booked every leg of this trip on ixigo. We matched the PNRs to this reel, so what you see is what you can book.
-              </motion.p>
-            )}
+        </div>
+
+        <div className="flex min-h-0 flex-1 items-center justify-center overflow-hidden px-9 py-4">
+          <AnimatePresence mode="wait">
+            <motion.p
+              key={scene + reel.id}
+              initial={{ opacity: 0, y: 14, scale: 0.94 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ type: 'spring', damping: 18, stiffness: 260 }}
+              className="text-shadow line-clamp-3 text-center font-display text-[24px] font-extrabold leading-[1.08] tracking-tight [@media(max-height:700px)]:text-[20px]"
+            >
+              {current.caption}
+            </motion.p>
           </AnimatePresence>
-          <h2 className="text-shadow mt-1.5 font-display text-[21px] font-bold leading-tight">
-            {isNew && (
-              <span className="mr-1.5 inline-flex -translate-y-0.5 items-center gap-0.5 rounded-md bg-ixi-orange px-1.5 py-0.5 align-middle font-sans text-[10px] font-extrabold tracking-wide">
-                <Sparkles size={10} /> NEW
-              </span>
-            )}
-            {reel.title}
-          </h2>
-          <p className="text-shadow mt-1 line-clamp-2 text-[13px] leading-snug text-white/85 [@media(max-height:720px)]:hidden">{reel.caption}</p>
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {reel.vibes.map((v) => (
-              <span key={v} className="rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-semibold backdrop-blur">#{v}</span>
-            ))}
-            <span className="flex items-center gap-1 rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-semibold backdrop-blur">
-              <ModeIcon mode={reel.recommendedMode} size={12} /> {reel.days}D/{reel.nights}N
-            </span>
-            <button onClick={() => openMap(reel.id)} className="flex items-center gap-1 rounded-full bg-ixi-orange/90 px-2.5 py-1 text-[11px] font-bold backdrop-blur" aria-label={`See ${reel.pins.length} tagged spots on a map`}>
-              <MapPin size={12} /> {reel.pins.length} spots · Map
-            </button>
-          </div>
-          <div className="mt-2.5 flex items-center gap-2 overflow-hidden text-[12px] text-white/75">
-            <Music2 size={13} className="shrink-0" />
-            <div className="w-44 overflow-hidden">
-              <div className="marquee flex w-max gap-8 whitespace-nowrap">
-                <span>{reel.music}</span>
-                <span>{reel.music}</span>
+        </div>
+
+        <div className="shrink-0 px-3 pb-3">
+          <div className="flex items-end gap-3">
+            {/* info */}
+            <div className="pointer-events-auto min-w-0 flex-1">
+              {liveTicker && <LiveTicker reel={reel} onOpen={onComments} />}
+              <div className="flex min-w-0 items-center gap-1.5">
+                <button onClick={openChannel} className="hit text-shadow min-w-0 truncate text-[15px] font-bold hover:underline">
+                  @{reel.creator.handle}
+                </button>
+                {verified && (
+                  <button onClick={() => setShowVerify((v) => !v)} aria-expanded={showVerify} aria-label="Verified trip, what does this mean?" className="hit shrink-0 text-verify">
+                    <BadgeCheck size={17} />
+                  </button>
+                )}
+                <SubscribeButton creator={reel.creator} size="sm" className="ml-1" />
+              </div>
+              <AnimatePresence>
+                {showVerify && (
+                  <motion.p initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="mt-1.5 overflow-hidden rounded-xl bg-black/55 px-3 py-2 text-[12px] leading-snug text-white/85 backdrop-blur">
+                    <b className="text-verify">PNR-verified trip.</b> {reel.creator.name.split(' ')[0]} booked every leg on ixigo, and we matched the bookings to this reel. What you see is what you can book.
+                  </motion.p>
+                )}
+              </AnimatePresence>
+              <h2 className="text-shadow mt-1 line-clamp-2 font-display text-[20px] font-bold leading-[1.15]">
+                {isNew && (
+                  <span className="mr-1.5 inline-flex -translate-y-0.5 items-center gap-0.5 rounded-md bg-ixi-orange px-1.5 py-0.5 align-middle font-sans text-[10px] font-extrabold tracking-wide">
+                    <Sparkles size={10} /> NEW
+                  </span>
+                )}
+                {reel.title}
+              </h2>
+              <p className="text-shadow mt-1 line-clamp-2 text-[13px] leading-snug text-white/80 [@media(max-height:760px)]:hidden">{reel.caption}</p>
+              <div className="no-scrollbar -mr-3 mt-2 flex gap-1.5 overflow-x-auto pr-3">
+                <button onClick={() => openMap(reel.id)} className="flex shrink-0 items-center gap-1 rounded-full bg-ixi-orange px-2.5 py-1 text-[11px] font-bold" aria-label={`See ${reel.pins.length} tagged spots on a map`}>
+                  <MapPin size={12} /> {reel.pins.length} spots
+                </button>
+                <span className="flex shrink-0 items-center gap-1 rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-semibold backdrop-blur">
+                  <ModeIcon mode={reel.recommendedMode} size={12} /> {reel.days}D/{reel.nights}N
+                </span>
+                {reel.vibes.map((v) => (
+                  <span key={v} className="shrink-0 rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-semibold backdrop-blur">#{v}</span>
+                ))}
+              </div>
+              <div className="mt-2 flex items-center gap-1.5 overflow-hidden text-[12px] text-white/70 [@media(max-height:700px)]:hidden">
+                <Music2 size={12} className="shrink-0" />
+                <div className="min-w-0 flex-1 overflow-hidden">
+                  <div className="marquee flex w-max gap-8 whitespace-nowrap">
+                    <span>{reel.music}</span>
+                    <span>{reel.music}</span>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
 
-        <motion.button
-          whileTap={{ scale: 0.97 }}
-          onClick={() => openSheet(reel.id, 'build')}
-          className="cta-sweep relative mt-3.5 flex w-full items-center justify-between overflow-hidden rounded-2xl bg-gradient-to-r from-ixi-orange to-[#FF8A3D] py-3 pl-5 pr-3 shadow-glow"
-        >
-          <span className="text-left">
-            <span className="flex items-center gap-2 font-display text-[19px] font-extrabold leading-none">
-              Take me there <Plane size={18} className="-rotate-45" strokeWidth={2.6} />
+            {/* action rail */}
+            <div className="pointer-events-auto flex w-[50px] shrink-0 flex-col items-center gap-3.5 pb-0.5 [@media(max-height:700px)]:gap-2.5">
+              <div className="relative mb-1.5">
+                <button onClick={openChannel} aria-label={`Open @${reel.creator.handle}'s channel`} className="block rounded-full">
+                  <Avatar name={reel.creator.name} hue={reel.creator.hue} size={44} ring />
+                </button>
+                <button
+                  aria-label={following ? `Unsubscribe from ${reel.creator.handle}` : `Subscribe to ${reel.creator.handle}`}
+                  onClick={() => {
+                    toggleFollow(reel.creator.handle)
+                    if (!following) notify({ title: `Subscribed to @${reel.creator.handle}`, body: 'New trips land in My Channels.', icon: '🔔', tone: 'green' })
+                  }}
+                  className={cx('hit-sm absolute -bottom-2 left-1/2 grid h-5 w-5 -translate-x-1/2 place-items-center rounded-full text-white transition-colors', following ? 'bg-ctkt' : 'bg-ixi-orange')}
+                >
+                  {following ? <Check size={12} strokeWidth={3} /> : <Plus size={13} strokeWidth={3} />}
+                </button>
+              </div>
+              <RailButton label={compact(reel.likes + (liked ? 1 : 0))} aria={liked ? 'Unlike' : 'Like'} pressed={liked} onClick={() => toggleLike(reel.id)}>
+                <motion.span key={String(liked)} initial={{ scale: 0.6 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 600, damping: 14 }}>
+                  <Heart size={28} fill={liked ? '#FF3D57' : 'transparent'} stroke={liked ? '#FF3D57' : 'white'} />
+                </motion.span>
+              </RailButton>
+              <RailButton label={compact(commentCount)} aria="Comments" onClick={onComments}>
+                <MessageCircle size={27} />
+              </RailButton>
+              <RailButton label={saved ? 'Saved' : 'Save'} aria="Save to Dream Board" pressed={saved} onClick={save}>
+                <Bookmark size={26} fill={saved ? '#FF9A4D' : 'transparent'} stroke={saved ? '#FF9A4D' : 'white'} />
+              </RailButton>
+              <RailButton label={compact(shareCount)} aria="Share trip" onClick={() => openShare(reel.id)}>
+                <Share2 size={26} />
+              </RailButton>
+            </div>
+          </div>
+
+          <motion.button
+            whileTap={{ scale: 0.97 }}
+            onClick={() => openSheet(reel.id, 'build')}
+            className="cta-sweep pointer-events-auto relative mt-3 flex w-full items-center justify-between overflow-hidden rounded-2xl bg-gradient-to-r from-ixi-orange to-[#FF8A3D] py-2.5 pl-4 pr-2.5 shadow-glow"
+          >
+            <span className="min-w-0 text-left">
+              <span className="flex items-center gap-2 font-display text-[18px] font-extrabold leading-none">
+                Take me there <Plane size={17} className="-rotate-45" strokeWidth={2.6} />
+              </span>
+              <span className="mt-1 block truncate text-[12px] font-medium text-white/90">
+                {inr(price)}/person · from {getCity(origin).name}
+              </span>
             </span>
-            <span className="mt-1 block text-[12px] font-medium text-white/85">
-              {inr(price)} per person from {getCity(origin).name}
-            </span>
-          </span>
-          <span className="whitespace-nowrap rounded-xl bg-white/20 px-3 py-2 text-[12px] font-bold">{compact(reel.clones)} went</span>
-        </motion.button>
+            <span className="shrink-0 whitespace-nowrap rounded-xl bg-white/20 px-2.5 py-1.5 text-[11px] font-bold">{compact(reel.clones)} booked</span>
+          </motion.button>
+        </div>
       </div>
     </div>
   )
 }
 
-function RailButton({ children, label, aria, onClick }: { children: React.ReactNode; label: string; aria: string; onClick: () => void }) {
+function RailButton({ children, label, aria, pressed, onClick }: { children: React.ReactNode; label: string; aria: string; pressed?: boolean; onClick: () => void }) {
   return (
-    <motion.button whileTap={{ scale: 0.85 }} onClick={onClick} aria-label={aria} className="flex flex-col items-center gap-0.5 drop-shadow-[0_2px_6px_rgba(0,0,0,.5)]">
+    <motion.button whileTap={{ scale: 0.85 }} onClick={onClick} aria-label={aria} aria-pressed={pressed} className="flex min-h-[44px] w-full flex-col items-center justify-center gap-0.5 drop-shadow-[0_2px_6px_rgba(0,0,0,.5)]">
       {children}
       <span className="text-[11px] font-semibold">{label}</span>
     </motion.button>
@@ -326,8 +325,8 @@ function RailButton({ children, label, aria, onClick }: { children: React.ReactN
 function LiveTicker({ reel, onOpen }: { reel: Reel; onOpen: () => void }) {
   const items = useLiveTicker(reel.id, 2)
   return (
-    <button onClick={onOpen} className="mb-2.5 block w-full text-left" aria-label="Open live comments">
-      <div className="flex h-[48px] flex-col justify-end gap-1 overflow-hidden">
+    <button onClick={onOpen} className="mb-2 block w-full text-left" aria-label="Open live comments">
+      <div className="flex h-[46px] flex-col justify-end gap-1 overflow-hidden">
         <AnimatePresence initial={false} mode="popLayout">
           {items.map((c, i) => (
             <motion.div

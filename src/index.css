@@ -147,3 +147,11 @@ body {
 .map-pin.pop:not(.is-active) { animation: pin-pop 0.35s ease-out; }
 /* hide hairline seams between tiles on high-DPI screens */
 .leaflet-tile-container img.leaflet-tile { width: 256.5px !important; height: 256.5px !important; }
+
+/* Bigger invisible tap area for small buttons and links (Apple/Google recommend ~44px).
+   The visual stays the same; the ::after extends the hit box by 10px on every side. */
+.hit:where(:not(.absolute):not(.fixed)) { position: relative; }
+.hit::after { content: ''; position: absolute; inset: -10px; }
+/* tighter version for tiny controls sitting right next to another target (the avatar's + badge) */
+.hit-sm:where(:not(.absolute):not(.fixed)) { position: relative; }
+.hit-sm::after { content: ''; position: absolute; inset: -6px; }

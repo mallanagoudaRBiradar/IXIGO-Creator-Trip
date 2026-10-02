@@ -74,7 +74,7 @@ export default function You() {
       <section className="mt-6">
         <div className="flex items-baseline justify-between px-5">
           <h2 className="font-display text-[18px] font-bold">Subscriptions</h2>
-          <Link to="/subs" className="text-[13px] font-semibold text-ixi-ember">Manage</Link>
+          <Link to="/subs" className="hit text-[13px] font-semibold text-ixi-ember">Manage</Link>
         </div>
         {subs.length ? (
           <div className="no-scrollbar mt-3 flex gap-3 overflow-x-auto px-5">
@@ -108,7 +108,7 @@ export default function You() {
           (history.length ? (
             <>
               <div className="mb-2 flex justify-end">
-                <button onClick={s.clearHistory} className="flex items-center gap-1 text-[12px] font-semibold text-white/50 hover:text-white">
+                <button onClick={s.clearHistory} className="hit flex items-center gap-1 text-[12px] font-semibold text-white/50 hover:text-white">
                   <Trash2 size={12} /> Clear history
                 </button>
               </div>

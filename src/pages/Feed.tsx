@@ -168,12 +168,14 @@ export default function Feed() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ delay: 1.6 }}
-            className="pointer-events-none absolute inset-x-0 top-[54%] z-20 flex flex-col items-center"
+            className="pt-safe pointer-events-none absolute inset-x-0 top-0 z-20 flex justify-center"
           >
-            <motion.div animate={{ y: [0, -16, 0] }} transition={{ repeat: Infinity, duration: 1.4 }}>
-              <ChevronUp size={30} />
-            </motion.div>
-            <span className="rounded-full bg-black/50 px-3 py-1.5 text-xs font-semibold backdrop-blur">Swipe up for the next trip</span>
+            <span className="mt-[60px] flex items-center gap-1.5 rounded-full bg-black/55 py-1.5 pl-2 pr-3 text-[12px] font-semibold backdrop-blur">
+              <motion.span animate={{ y: [0, -4, 0] }} transition={{ repeat: Infinity, duration: 1.2 }}>
+                <ChevronUp size={16} />
+              </motion.span>
+              Swipe up for more trips
+            </span>
           </motion.div>
         )}
       </AnimatePresence>

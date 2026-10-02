@@ -111,7 +111,7 @@ export default function Channel() {
             <Crown size={11} /> {creator.tier}
           </span>
           {titles.map((d) => (
-            <Link key={d.id} to={`/leaderboard?dest=${d.id}&period=month`} className="flex items-center gap-1 rounded-full bg-[#F59E0B]/15 px-2 py-0.5 text-[11px] font-bold text-gold">
+            <Link key={d.id} to={`/leaderboard?dest=${d.id}&period=month`} className="hit flex items-center gap-1 rounded-full bg-[#F59E0B]/15 px-2 py-0.5 text-[11px] font-bold text-gold">
               <Trophy size={11} /> Top {d.name} guide this month
             </Link>
           ))}
@@ -235,7 +235,7 @@ function AskBox({ creator, onAsked, onSeeAll }: { creator: Creator; onAsked: () 
         <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-ixi-ember">
           <Pin size={12} /> Ask {first} anything
         </div>
-        <button onClick={onSeeAll} className="text-[12px] font-semibold text-white/60 hover:text-white">
+        <button onClick={onSeeAll} className="hit text-[12px] font-semibold text-white/60 hover:text-white">
           {answered} answered ›
         </button>
       </div>

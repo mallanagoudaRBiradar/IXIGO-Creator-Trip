@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Trash2, TrendingDown } from 'lucide-react'
 import { PageHeader, PartnerBadge, SmartImage } from '../components/ui'
 import { getCity, getReel } from '../lib/mockData'
-import { useApp, useUI } from '../lib/store'
+import { canNotify, useApp, useUI } from '../lib/store'
 import { fmtDate, inr } from '../lib/utils'
 
 function Sparkline({ values, up }: { values: number[]; up: boolean }) {
@@ -57,7 +57,7 @@ export default function Dreams() {
                             From {getCity(d.config.origin).name}, {fmtDate(d.config.startDate)}, {d.config.travelers} guests
                           </p>
                         </div>
-                        <button onClick={() => removeDream(d.id)} aria-label={`Remove ${reel.destination.name}`} className="p-1 text-white/40 hover:text-white">
+                        <button onClick={() => removeDream(d.id)} aria-label={`Remove ${reel.destination.name}`} className="hit -m-1 p-2 text-white/40 hover:text-white">
                           <Trash2 size={15} />
                         </button>
                       </div>
@@ -87,13 +87,13 @@ export default function Dreams() {
                       onClick={() => {
                         const drop = Math.max(400, Math.round((d.currentPrice * 0.05) / 50) * 50)
                         dropDreamPrice(d.id, drop)
-                        notify({ title: `Fares dropped by ${inr(drop)}`, body: `${reel.destination.name} from ${getCity(d.config.origin).name} is now ${inr(d.currentPrice - drop)}.`, icon: '📉', tone: 'green' })
+                        if (canNotify('priceDrops')) notify({ title: `Fares dropped by ${inr(drop)}`, body: `${reel.destination.name} from ${getCity(d.config.origin).name} is now ${inr(d.currentPrice - drop)}.`, icon: '📉', tone: 'green' })
                       }}
-                      className="text-[11px] font-semibold text-white/40 underline-offset-2 hover:text-white/70 hover:underline"
+                      className="hit whitespace-nowrap text-[11px] font-semibold text-white/45 underline-offset-2 hover:text-white/70 hover:underline"
                     >
-                      Demo a fare drop
+                      Simulate a drop
                     </button>
-                    <button onClick={() => openSheet(reel.id, 'build', { ...d.config, fareDrop: d.savedPrice - d.currentPrice })} className="ml-auto rounded-xl bg-ixi-orange px-4 py-2 text-[13px] font-bold">
+                    <button onClick={() => openSheet(reel.id, 'build', { ...d.config, fareDrop: d.savedPrice - d.currentPrice })} className="ml-auto rounded-xl bg-ixi-orange px-4 py-2 text-[13px] font-bold shrink-0 whitespace-nowrap">
                       Book at {inr(d.currentPrice)}
                     </button>
                   </div>

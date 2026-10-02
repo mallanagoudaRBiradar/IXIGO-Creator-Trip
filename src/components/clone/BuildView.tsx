@@ -83,7 +83,7 @@ export default function BuildView({ reel, cfg, setCfg, price, onBook, onCrew }: 
               <BadgeCheck size={14} className="text-verify" /> @{reel.creator.handle}'s exact trip
             </div>
             <h2 className="mt-1 font-display text-[26px] font-extrabold leading-none tracking-tight">{reel.destination.name}</h2>
-            <button onClick={() => setPicker(true)} className="mt-1.5 flex items-center gap-1 text-[13px] font-semibold text-ixi-ember">
+            <button onClick={() => setPicker(true)} className="hit mt-1.5 flex items-center gap-1 text-[13px] font-semibold text-ixi-ember">
               from {origin.name} <ChevronDown size={14} />
             </button>
           </div>

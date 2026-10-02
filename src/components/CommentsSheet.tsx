@@ -154,7 +154,7 @@ function Comments({ reel, onClose }: { reel: Reel; onClose: () => void }) {
                     <div className="ml-[46px] mt-2">
                       <button
                         onClick={() => setExpanded((e) => (open ? e.filter((x) => x !== c.id) : [...e, c.id]))}
-                        className="flex items-center gap-1 text-[12px] font-bold text-link"
+                        className="hit flex items-center gap-1 text-[12px] font-bold text-link"
                         aria-expanded={open}
                       >
                         {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
@@ -289,13 +289,13 @@ function Row({ c, reel, onReply, onUser, onMore, small }: { c: Comment; reel: Re
         </div>
         <p className="mt-0.5 whitespace-pre-wrap break-words leading-snug">{text}</p>
         <div className="mt-1.5 flex items-center gap-4 text-[12px] text-white/55">
-          <button onClick={() => toggleCommentLike(c.id)} className="flex items-center gap-1" aria-pressed={liked} aria-label={liked ? 'Unlike comment' : 'Like comment'}>
+          <button onClick={() => toggleCommentLike(c.id)} className="hit flex items-center gap-1" aria-pressed={liked} aria-label={liked ? 'Unlike comment' : 'Like comment'}>
             <motion.span key={String(liked)} initial={{ scale: 0.6 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 600, damping: 14 }}>
               <Heart size={15} fill={liked ? '#FF3D57' : 'transparent'} stroke={liked ? '#FF3D57' : 'currentColor'} />
             </motion.span>
             {c.likes + (liked ? 1 : 0) > 0 && compact(c.likes + (liked ? 1 : 0))}
           </button>
-          <button onClick={() => onReply(c)} className="font-semibold">Reply</button>
+          <button onClick={() => onReply(c)} className="hit font-semibold">Reply</button>
           {!isOwner && creatorLiked && !mine && (
             <span className="flex items-center gap-1 text-[11px]" title={`Liked by @${reel.creator.handle}`}>
               <Heart size={11} fill="#FF3D57" stroke="none" /> by creator

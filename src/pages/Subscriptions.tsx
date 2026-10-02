@@ -30,9 +30,9 @@ export default function Subscriptions() {
     <div className="no-scrollbar h-full overflow-y-auto pb-10">
       <PageHeader
         title="My Channels"
-        sub={subs.length ? `${subs.length} channel${subs.length === 1 ? '' : 's'} · ${bells.length} with notifications on` : 'The travel creators you subscribe to, all in one place.'}
+        sub={subs.length ? `${subs.length} channel${subs.length === 1 ? '' : 's'} · ${bells.length} with bells on` : 'The travel creators you subscribe to, all in one place.'}
         right={
-          <button onClick={() => navigate('/leaderboard')} className="flex items-center gap-1.5 rounded-full bg-[#F59E0B]/15 px-3 py-2 text-[12px] font-bold text-gold">
+          <button onClick={() => navigate('/leaderboard')} className="flex items-center gap-1.5 whitespace-nowrap rounded-full bg-[#F59E0B]/15 px-3 py-2 text-[12px] font-bold text-gold">
             <Trophy size={14} /> Top guides
           </button>
         }

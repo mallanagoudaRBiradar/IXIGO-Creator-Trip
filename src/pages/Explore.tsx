@@ -105,7 +105,7 @@ export default function Explore() {
         <section className="mt-6">
           <div className="flex items-baseline justify-between px-5">
             <h2 className="font-display text-[19px] font-bold">Top creators</h2>
-            <button onClick={() => navigate('/subs')} className="text-[13px] font-semibold text-ixi-ember">See all</button>
+            <button onClick={() => navigate('/subs')} className="hit text-[13px] font-semibold text-ixi-ember">See all</button>
           </div>
           <div className="no-scrollbar mt-3 flex gap-3 overflow-x-auto px-5 pb-1">
             {[...CREATORS].sort((a, b) => b.subscribers - a.subscribers).map((c) => <CreatorChip key={c.handle} creator={c} />)}

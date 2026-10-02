@@ -41,6 +41,7 @@ export default function Creator() {
     <div className="no-scrollbar h-full overflow-y-auto pb-10">
       <PageHeader
         title="Creator Hub"
+        back
         right={
           <button onClick={() => setUpload('pick')} className="flex items-center gap-1.5 rounded-full bg-ixi-orange px-3.5 py-2 text-[13px] font-bold shadow-glow">
             <Plus size={15} strokeWidth={3} /> New reel
@@ -99,7 +100,7 @@ export default function Creator() {
       <section className="mt-4 grid grid-cols-3 gap-2.5 px-5">
         <Metric icon={Repeat2} label="Trips booked" value={CLONES} delta="+12 this week" />
         <Metric icon={Gem} label="Gems earned" value={gems} delta="+2,140 this week" />
-        <Metric icon={Hourglass} label="Pending" value={3120} delta="Credited after travel" suffix=" Gems" muted />
+        <Metric icon={Hourglass} label="Gems pending" value={3120} delta="Credited after travel" muted />
       </section>
 
       {/* chart */}
